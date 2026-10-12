@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D5AE7153-A217-4945-8947-81557FA9092B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrophyTracker", "src\TrophyTracker\TrophyTracker.csproj", "{8B7B5143-09B6-4AE6-921A-EA7E59895D78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3132FE3C-F144-4C0C-8659-82C8B2CDCCFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrophyTracker.Tests", "tests\TrophyTracker.Tests\TrophyTracker.Tests.csproj", "{46F2B4E2-EA9E-4981-8A71-167BB514C63B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B7B5143-09B6-4AE6-921A-EA7E59895D78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B7B5143-09B6-4AE6-921A-EA7E59895D78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B7B5143-09B6-4AE6-921A-EA7E59895D78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7B5143-09B6-4AE6-921A-EA7E59895D78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46F2B4E2-EA9E-4981-8A71-167BB514C63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46F2B4E2-EA9E-4981-8A71-167BB514C63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46F2B4E2-EA9E-4981-8A71-167BB514C63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46F2B4E2-EA9E-4981-8A71-167BB514C63B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8B7B5143-09B6-4AE6-921A-EA7E59895D78} = {D5AE7153-A217-4945-8947-81557FA9092B}
+		{46F2B4E2-EA9E-4981-8A71-167BB514C63B} = {3132FE3C-F144-4C0C-8659-82C8B2CDCCFD}
+	EndGlobalSection
+EndGlobal

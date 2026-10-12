@@ -1,0 +1,13 @@
+# TrophyTracker's English strings: key = text.
+# To translate, copy this file to BepInEx/config/TrophyTracker/translations/<Language>.txt, using the
+# game's language name (German.txt, Norwegian.txt, ...), and translate the right-hand side. Keys you
+# leave out fall back to English. {0} is replaced by a number. Creature names come from the game.
+
+count_roll = roll
+count_always = always
+count_none = -
+collected = collected
+more = +{0} more
+uncollected = Not yet collected. {0} drop. Click to pin.
+uncollected_nochance = Not yet collected. Click to pin.
+pinned = Pinned to the HUD. Click to unpin.

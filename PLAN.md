@@ -162,18 +162,26 @@ src/TrophyTracker/
   Plugin.cs                  BepInEx entry, Harmony, console command
   PluginConfig.cs            all ConfigEntry bindings (§4)
   ConfigurationManagerAttributes.cs
-  Core/Model/                pure C#: no UnityEngine, no game types
-    TrophyCatalog.cs         trophy id → sources (creature prefab, m_name token, chance, levelMultiplier)
-    PityMath.cs              effective chance per tier, pity flag, ≤M bound, tier match, kills left
-    RowBuilder.cs            inputs → ordered list of RowView structs (§3)
-    RowView.cs               plain display row: icon id, name, count text, state, chance, bar fill, dim
-    PinList.cs               parse/serialise the Pinned config string
-    DiscoveredSet.cs         parse/serialise the m_customData value
-    PanelLayout.cs           anchor presets, offset direction, drag delta → offset
-  Game/
-    Catalog.cs               builds TrophyCatalog from ObjectDB + ZNetScene
-    CounterReader.cs         snapshots CharacterDrop.s_pseudoCounter for the model
-    Discovery.cs             load/back-fill/save the discovered set
+  Core/                       game-facing runtime
+    Runtime.cs
+    CatalogBuilder.cs
+    CounterReader.cs
+    Discovery.cs
+    Keys.cs
+    TrophyConsole.cs
+    Model/                    pure C#: no UnityEngine, no game types
+      TrophyCatalog.cs        trophy id → sources (creature prefab, m_name token, chance, levelMultiplier)
+      PityMath.cs             effective chance per tier, pity flag, ≤M bound, tier match, kills left
+      RowBuilder.cs           inputs → ordered list of RowView structs (§3)
+      RowView.cs              plain display row: icon id, name, count text, state, chance, bar fill, dim
+      PinList.cs              parse/serialise the Pinned config string
+      DiscoveredSet.cs        parse/serialise the m_customData value
+      PanelLayout.cs          anchor presets, offset direction, drag delta → offset
+      BarTracker.cs
+      RowText.cs
+      Translations.cs
+      Visibility.cs
+      CounterEntry.cs
   Patches/                   Hud, EnemyHud.ShowHud, CharacterDrop.GenerateDropList,
                              Game.RPC_RegisterKill, Player.AddTrophy, InventoryGui.UpdateTrophyList
   UI/
@@ -181,6 +189,8 @@ src/TrophyTracker/
     TrophyRow.cs             one pooled row
     PanelDrag.cs             drag handling, writes Offset
     CompendiumDecorator.cs   silhouettes, pin badges, click toggles
+    PinToggle.cs
+    Sprites.cs / UiUtil.cs
   translations/English.txt
 tests/TrophyTracker.Tests/   net8.0, dotnet test
 ```
@@ -208,6 +218,8 @@ About 26 px tall at scale 1, with a 3 px progress bar under the text:
   the most kills; ties and zero kills fall back to the first discovered source.
 - **Chance:** the base 0★ chance of that source (`ShowChance`).
 - **Font:** the vanilla HUD font asset; size follows `Scale`.
+- If the HUD font lacks ★, ≤ or ✓ (checked once with `TMP_FontAsset.HasCharacter(c, true)`), ASCII
+  stand-ins are used: `*`, `<=`, `+`.
 
 ### 3.2 States
 
@@ -250,7 +262,8 @@ Hidden in every other state.
 | Pins | `ShowRecentKill` | true |
 | Pins | `RecentKillSeconds` | 60 |
 | Layout | `Anchor` | MiddleLeft (TopLeft … BottomRight, 9 presets) |
-| Layout | `Offset` | (20, 0) |
+| Layout | `OffsetX` | 20 |
+| Layout | `OffsetY` | 0 |
 | Layout | `Scale` | 1.0 (0.5–2.0) |
 | Layout | `MaxRows` | 8 |
 | Layout | `DragModifier` | LeftAlt |
@@ -306,9 +319,12 @@ Nothing runs per frame except the visibility check and an active drag.
 
 - Inventory open + `DragModifier` held: the panel shows even when `HideWithInventory` is on,
   gets a faint outline and accepts a drag.
-- The drag delta is divided by canvas scale and `Scale` and added to `Offset`; on release (or if
-  the modifier is released mid-drag) `Offset` is written to config and saved.
+- The drag delta is converted to the parent's local space with
+  `RectTransformUtility.ScreenPointToLocalPointInRectangle`, so canvas scaling is handled; the
+  panel's own `Scale` does not affect its position. On release (or if the modifier is released
+  mid-drag) `Offset` is written to config and saved.
 - Dragging never changes `Anchor`.
+- In drag mode the panel gets a Canvas with `overrideSorting` so it draws above the inventory.
 
 ### 6.3 Toggle key
 
@@ -333,9 +349,8 @@ A postfix on `InventoryGui.UpdateTrophyList`:
    them. The root height is recalculated with vanilla's formula.
 2. Undiscovered trophies stay absent (vanilla already leaves gaps for uncollected ones).
 3. **Pin toggle** on every element: a `Button` (no transition) on the element root toggles the
-   trophy in `Pinned`. Pinned elements get a small badge on the icon's top-right (the game's
-   map-pin sprite, looked up once; a text glyph if not found). Clicks are ignored while
-   `DragModifier` is held.
+   trophy in `Pinned`. Pinned elements get a small badge on the icon's top-right — a small drawn
+   dot sprite (no game sprite lookup). Clicks are ignored while `DragModifier` is held.
 4. Collected trophies keep vanilla's name and lore and stay pinnable for farming duplicates.
 5. Not carried over from TrophyPercent: title count, red "(Missing)", flavour line, checkboxes.
 6. Gamepad: trophy elements are not gamepad-selectable in vanilla, so on a controller pins are
