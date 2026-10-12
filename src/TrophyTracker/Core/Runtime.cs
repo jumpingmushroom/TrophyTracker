@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using BepInEx;
 using TrophyTracker.Core.Model;
+using TrophyTracker.UI;
 using UnityEngine;
 
 namespace TrophyTracker.Core
@@ -49,6 +50,8 @@ namespace TrophyTracker.Core
                 _nextTick = Time.time + 1f;
                 Dirty = true;
             }
+
+            TrophyPanel.Ensure();
         }
 
         public static void OnKill(string nameToken)
