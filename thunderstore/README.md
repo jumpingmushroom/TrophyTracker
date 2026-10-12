@@ -15,7 +15,7 @@ chance, it tracks a counter per creature and guarantees the drop within a bounde
 TrophyTracker reads that counter instead of guessing:
 
 - **Before your first kill of a creature this session**, the game hasn't seeded its counter yet,
-  so the exact count isn't knowable. The row shows `? ≤N`, the worst case — the drop is guaranteed
+  so the exact count isn't knowable. The row shows `? max N`, the worst case — the drop is guaranteed
   by the N-th kill, and usually comes sooner.
 - **After that first kill**, the counter is seeded and the row shows an exact count, falling by
   one with (usually) every kill of that creature and star level.

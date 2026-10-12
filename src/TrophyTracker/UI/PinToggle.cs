@@ -42,6 +42,9 @@ namespace TrophyTracker.UI
                 button = gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
             button.targetGraphic = icon;
+            Navigation nav = button.navigation;
+            nav.mode = Navigation.Mode.None;
+            button.navigation = nav;
             button.onClick.AddListener(Toggle);
             Refresh();
         }

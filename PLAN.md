@@ -23,7 +23,7 @@ are the same as Earshot's and Forewarned's. No publish tooling: releases end at
 **Decisions agreed (2026-10-12 design review):**
 - **Name:** TrophyTracker.
 - **Counter display:** exact count when the game's counter is known, labelled with the star tier
-  it is tracking (`7 ★0`). Before the first kill of a creature this session, `?  ≤M` with `M` the
+  it is tracking (`7 ★0`). Before the first kill of a creature this session, `? max M` with `M` the
   worst case. `roll` when pity does not apply, `always` for guaranteed drops.
 - **Multiplayer:** exact counts are dimmed while other players are online, because the counter
   belongs to whichever client owns the creature (§1.4).
@@ -82,7 +82,11 @@ the remaining count.
   `M = (int)(2/p)`. Seed 0 drops on that kill; seed `s ≥ 1` stores `s` and drops `s` kills later.
   So from an unseeded state the drop lands on kill 1..M, worst case `M`, mean about `1/p`. For
   10% that is ≤ 20. TrophyPercent's `round(1/p) - kills % round(1/p)` is unrelated to the real
-  counter; we show `?  ≤M` instead.
+  counter; we show `? max M` instead.
+- **In game (Mono)** `(int)(1f / 0.1f * 2f)` evaluates to 19, not 20: Mono evaluates the float
+  expression at higher precision, and 1/0.1f is a hair under 10. The game evaluates the same
+  expression in the same runtime, so the displayed worst case matches the game; the unit tests
+  (net8, strict float) see 20.
 - **After a drop** the reseed is uniform on `[0, (int)(2/p + 1) - 1]`; kills left is again
   `max(1, n)` and exact.
 - **Star tier is part of the key.** Killing a creature of a different star level makes
@@ -209,7 +213,7 @@ About 26 px tall at scale 1, with a 3 px progress bar under the text:
 ```
 [icon] Fenring ............  7 ★0   10%
        ▓▓▓▓▓▓▓▓░░░░░░
-[icon] Surtling ...........  ?  ≤40   5%
+[icon] Surtling ...........  ? max 40   5%
 [icon] Deer ...............  roll   50%
 ```
 
@@ -218,8 +222,8 @@ About 26 px tall at scale 1, with a 3 px progress bar under the text:
   the most kills; ties and zero kills fall back to the first discovered source.
 - **Chance:** the base 0★ chance of that source (`ShowChance`).
 - **Font:** the vanilla HUD font asset; size follows `Scale`.
-- If the HUD font lacks ★, ≤ or ✓ (checked once with `TMP_FontAsset.HasCharacter(c, true)`), ASCII
-  stand-ins are used: `*`, `<=`, `+`.
+- If the HUD font lacks ★ or ✓ (checked once with `TMP_FontAsset.HasCharacter(c, true)`), ASCII
+  stand-ins are used: `*`, `+`.
 
 ### 3.2 States
 
@@ -227,7 +231,7 @@ About 26 px tall at scale 1, with a 3 px progress bar under the text:
 |---|---|---|
 | Exact | counter entry exists and `Item1 == m_chance × 2^s` for a tier `s` | `max(1, n)` + `★s` (no star if the drop has no level multiplier) |
 | Exact, unknown tier | entry exists, no tier matches (chance changed by another mod) | `max(1, n)` |
-| Unknown | no entry this session | `?  ≤M`, `M = (int)(2 / p0)` |
+| Unknown | no entry this session | `? max M`, `M = (int)(2 / p0)` |
 | Roll | base chance > 0.3, or `NoPseudoDrops` is set | `roll` |
 | Always | base chance ≥ 1 | `always` |
 | No source | trophy has no creature drop in the catalog | `—` |

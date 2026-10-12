@@ -27,6 +27,8 @@ namespace TrophyTracker.Core.Model
         }
 
         /// <summary>Exclusive upper bound of the first seed: Random.Range(0, (int)(1/p × 2)).</summary>
+        /// <remarks>In game (Mono) this evaluates to 19 for p = 0.1f, not 20: Mono evaluates the float
+        /// expression at higher precision, and 1/0.1f is a hair under 10 (PLAN.md §1.2).</remarks>
         public static int SeedBound(float p)
         {
             return (int)(1f / p * 2f);

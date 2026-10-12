@@ -46,6 +46,7 @@ namespace TrophyTracker.UI
                     continue;
 
                 GameObject el = UnityEngine.Object.Instantiate(gui.m_trophieElementPrefab, gui.m_trophieListRoot);
+                gui.m_trophyList.Add(el);
                 el.SetActive(true);
                 var rt = (RectTransform)el.transform;
                 Vector2Int pos = item.m_itemData.m_shared.m_trophyPos;
@@ -62,7 +63,6 @@ namespace TrophyTracker.UI
                     : Runtime.Tr.Get("uncollected_nochance") ?? "Not yet collected. Click to pin.";
                 rt.Find("description").GetComponent<TMP_Text>().text = hint;
 
-                gui.m_trophyList.Add(el);
                 el.AddComponent<PinToggle>().Init(t.Id, false);
             }
 

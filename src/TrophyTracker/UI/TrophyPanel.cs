@@ -15,19 +15,19 @@ namespace TrophyTracker.UI
     internal sealed class TrophyPanel : MonoBehaviour
     {
         private const int PoolSize = 12;
-        private const float RowHeight = 28f;
-        private const float Pad = 8f;
-        private const float IconSize = 24f;
-        private const float NameWidth = 150f;
-        private const float CountWidth = 72f;
-        private const float ChanceWidth = 46f;
+        private const float RowHeight = 32f;
+        private const float Pad = 10f;
+        private const float IconSize = 26f;
+        private const float NameWidth = 170f;
+        private const float CountWidth = 96f;
+        private const float ChanceWidth = 54f;
         private const float Gap = 6f;
         private const float BarHeight = 3f;
 
         private static readonly Color NameColor = new Color(1f, 1f, 1f, 0.95f);
         private static readonly Color RecentColor = new Color(0.65f, 0.85f, 1f, 1f);
         private static readonly Color ExactColor = new Color(1f, 0.82f, 0.36f, 1f);
-        private static readonly Color MutedColor = new Color(0.78f, 0.78f, 0.78f, 1f);
+        private static readonly Color MutedColor = new Color(0.86f, 0.86f, 0.86f, 1f);
         private static readonly Color CollectedColor = new Color(0.55f, 0.95f, 0.55f, 1f);
         private static readonly Color BarBack = new Color(1f, 1f, 1f, 0.15f);
         private static readonly Color BarFront = new Color(1f, 0.82f, 0.36f, 0.9f);
@@ -96,16 +96,16 @@ namespace TrophyTracker.UI
             _plate = root.gameObject.AddComponent<Image>();
             _plate.sprite = Sprites.Plate;
             _plate.type = Image.Type.Sliced;
-            _plate.color = new Color(0f, 0f, 0f, 0.55f);
+            _plate.color = new Color(0f, 0f, 0f, 0.72f);
             _plate.raycastTarget = false;
             for (int i = 0; i < PoolSize; i++)
                 _rows.Add(MakeRow(i));
-            _more = UiUtil.Text(root, "More", 16f);
+            _more = UiUtil.Text(root, "More", 18f);
             _more.color = MutedColor;
             Place(_more.rectTransform, 0f, NameWidth, RowHeight);
 
             TMP_FontAsset font = UiUtil.Font;
-            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('≤', true) && font.HasCharacter('✓', true);
+            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true);
             _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
 
             PluginConfig.Changed += OnConfigChanged;
@@ -141,11 +141,11 @@ namespace TrophyTracker.UI
             row.Icon.raycastTarget = false;
             row.Icon.preserveAspect = true;
 
-            row.Name = UiUtil.Text(rt, "Name", 18f);
+            row.Name = UiUtil.Text(rt, "Name", 22f);
             row.Name.overflowMode = TextOverflowModes.Ellipsis;
-            row.Count = UiUtil.Text(rt, "Count", 18f);
+            row.Count = UiUtil.Text(rt, "Count", 22f);
             row.Count.alignment = TextAlignmentOptions.MidlineRight;
-            row.Chance = UiUtil.Text(rt, "Chance", 15f);
+            row.Chance = UiUtil.Text(rt, "Chance", 18f);
             row.Chance.alignment = TextAlignmentOptions.MidlineRight;
             row.Chance.color = MutedColor;
 
@@ -287,7 +287,7 @@ namespace TrophyTracker.UI
                 _outline = mode;
                 _sortCanvas.overrideSorting = mode;
                 _sortCanvas.sortingOrder = mode ? 30000 : 0;
-                _plate.color = mode ? new Color(0.25f, 0.2f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, 0.55f);
+                _plate.color = mode ? new Color(0.25f, 0.2f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, 0.72f);
             }
             if (!mode)
             {
@@ -361,6 +361,7 @@ namespace TrophyTracker.UI
                 {
                     row.BoundTrophy = v.TrophyId;
                     row.Icon.sprite = IconFor(v.TrophyId);
+                    row.Icon.enabled = row.Icon.sprite != null;
                 }
                 SetText(row.Name, v.NameToken != null ? Localization.instance.Localize(v.NameToken) : TrophyName(v.TrophyId));
                 row.Name.color = v.Recent ? RecentColor : NameColor;

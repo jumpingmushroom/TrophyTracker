@@ -6,6 +6,7 @@
 count_roll = roll
 count_always = always
 count_none = -
+count_max = max
 collected = collected
 more = +{0} more
 uncollected = Not yet collected. {0} drop. Click to pin.

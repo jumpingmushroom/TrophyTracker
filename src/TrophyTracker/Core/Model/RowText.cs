@@ -6,11 +6,10 @@ namespace TrophyTracker.Core.Model
     public struct Glyphs
     {
         public string Star;
-        public string AtMost;
         public string Check;
 
-        public static readonly Glyphs Unicode = new Glyphs { Star = "★", AtMost = "≤", Check = "✓" };
-        public static readonly Glyphs Ascii = new Glyphs { Star = "*", AtMost = "<=", Check = "+" };
+        public static readonly Glyphs Unicode = new Glyphs { Star = "★", Check = "✓" };
+        public static readonly Glyphs Ascii = new Glyphs { Star = "*", Check = "+" };
     }
 
     /// <summary>PLAN.md §3.2: the text of a row's count and chance columns.</summary>
@@ -24,7 +23,7 @@ namespace TrophyTracker.Core.Model
                     string n = v.Count.ToString(CultureInfo.InvariantCulture);
                     return v.Stars >= 0 ? n + " " + g.Star + v.Stars.ToString(CultureInfo.InvariantCulture) : n;
                 case RowState.Unknown:
-                    return "?  " + g.AtMost + v.Count.ToString(CultureInfo.InvariantCulture);
+                    return "? " + Word(tr, "count_max", "max") + " " + v.Count.ToString(CultureInfo.InvariantCulture);
                 case RowState.Roll:
                     return Word(tr, "count_roll", "roll");
                 case RowState.Always:

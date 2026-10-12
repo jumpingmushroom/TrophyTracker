@@ -34,7 +34,7 @@ namespace TrophyTracker.UI
                 return _outlined;
             _outlined = new Material(font.material);
             _outlined.EnableKeyword(ShaderUtilities.Keyword_Outline);
-            _outlined.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+            _outlined.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.3f);
             _outlined.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0f, 0f, 0f, 1f));
             _outlined.hideFlags = HideFlags.HideAndDontSave;
             _outlinedFor = font;
