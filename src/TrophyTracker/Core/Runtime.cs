@@ -33,8 +33,8 @@ namespace TrophyTracker.Core
         {
             if (!_initialised)
                 TryInit();
-            EnsureCatalog();
             EnsurePlayer();
+            EnsureCatalog();
 
             if (PluginConfig.Enabled.Value && Keys.Down(PluginConfig.ToggleKey.Value) && !Keys.InputBlocked())
             {
@@ -104,13 +104,26 @@ namespace TrophyTracker.Core
         private static void EnsurePlayer()
         {
             Player p = Player.m_localPlayer;
-            if (p == _player)
+            // ReferenceEquals, not Player's own ==: Unity overloads == so a destroyed player compares
+            // equal to null, which would hide a logout (p turns null, _player is still the old,
+            // destroyed-but-not-reference-null instance) and leave the previous character's Discovered
+            // set in place for whoever logs in next.
+            if (ReferenceEquals(p, _player))
                 return;
             _player = p;
             FlashUntil.Clear();
             _recentToken = null;
-            if (p != null)
+            if (p == null)
+            {
+                // No live player: nothing loaded, so Discovered must not be left holding the departed
+                // character's set for a new login (or a stray Backfill/See) to stamp over.
+                Discovered = new DiscoveredSet();
+                Discovery.Unload();
+            }
+            else
+            {
                 Discovery.Load(p);
+            }
             Dirty = true;
         }
 
