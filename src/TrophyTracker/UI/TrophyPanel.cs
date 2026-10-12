@@ -89,6 +89,13 @@ namespace TrophyTracker.UI
         private void Build(RectTransform root)
         {
             _root = root;
+
+            // Drawn above the inventory while dragging (PLAN.md §6.2); off otherwise.
+            _sortCanvas = root.gameObject.AddComponent<Canvas>();
+            _sortCanvas.overrideSorting = false;
+            // TMP's SDF shader needs these; TMP only enables them on the canvas it cached at creation (the HUD's).
+            _sortCanvas.additionalShaderChannels = AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.Normal | AdditionalCanvasShaderChannels.Tangent;
+
             _group = root.gameObject.AddComponent<CanvasGroup>();
             _group.interactable = false;
             _group.blocksRaycasts = false;
@@ -109,10 +116,6 @@ namespace TrophyTracker.UI
             _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
 
             PluginConfig.Changed += OnConfigChanged;
-
-            // Drawn above the inventory while dragging (PLAN.md §6.2); off otherwise.
-            _sortCanvas = root.gameObject.AddComponent<Canvas>();
-            _sortCanvas.overrideSorting = false;
         }
 
         private void OnDestroy()
