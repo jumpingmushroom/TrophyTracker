@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using TrophyTracker.Core;
 
 namespace TrophyTracker
 {
@@ -27,9 +28,25 @@ namespace TrophyTracker
         private void Awake()
         {
             Log = Logger;
+            PluginConfig.Bind(Config);
+            TrophyConsole.Register();
+
             _harmony = new Harmony(PluginGuid);
             _harmony.PatchAll(typeof(TrophyTrackerPlugin).Assembly);
+
             Logger.LogInfo(PluginName + " " + PluginVersion + " loaded.");
+        }
+
+        private void Update()
+        {
+            try
+            {
+                Runtime.Tick();
+            }
+            catch (Exception e)
+            {
+                WarnOnce("Runtime.Tick", e);
+            }
         }
 
         private void OnDestroy()
