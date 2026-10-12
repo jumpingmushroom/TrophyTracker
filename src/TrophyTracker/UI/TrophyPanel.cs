@@ -56,6 +56,14 @@ namespace TrophyTracker.UI
         private Glyphs _glyphs = Glyphs.Unicode;
         private int _rowCount;
         private bool _layoutDirty = true;
+        private Canvas _sortCanvas;
+        private bool _dragging;
+        private Vector2 _dragStartLocal;
+        private float _dragStartX;
+        private float _dragStartY;
+        private float _liveX;
+        private float _liveY;
+        private bool _outline;
 
         public static void Ensure()
         {
@@ -101,6 +109,10 @@ namespace TrophyTracker.UI
             _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
 
             PluginConfig.Changed += OnConfigChanged;
+
+            // Drawn above the inventory while dragging (PLAN.md §6.2); off otherwise.
+            _sortCanvas = root.gameObject.AddComponent<Canvas>();
+            _sortCanvas.overrideSorting = false;
         }
 
         private void OnDestroy()
@@ -224,6 +236,7 @@ namespace TrophyTracker.UI
         {
             try
             {
+                Drag();
                 if (_layoutDirty)
                     ApplyLayout();
                 if (Runtime.Dirty)
@@ -260,10 +273,73 @@ namespace TrophyTracker.UI
             };
         }
 
-        /// <summary>Replaced in Task 8.</summary>
         private bool DragModeActive()
         {
-            return false;
+            return PluginConfig.Enabled.Value && InventoryGui.IsVisible() && Keys.Held(PluginConfig.DragModifier.Value);
+        }
+
+        /// <summary>PLAN.md §6.2. Manual hit test and mouse tracking, so no raycaster on the HUD canvas is needed.</summary>
+        private void Drag()
+        {
+            bool mode = DragModeActive();
+            if (mode != _outline)
+            {
+                _outline = mode;
+                _sortCanvas.overrideSorting = mode;
+                _sortCanvas.sortingOrder = mode ? 30000 : 0;
+                _plate.color = mode ? new Color(0.25f, 0.2f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, 0.55f);
+            }
+            if (!mode)
+            {
+                if (_dragging)
+                    EndDrag();
+                return;
+            }
+
+            Vector2 mouse = BepInEx.UnityInput.Current.mousePosition;
+            Camera cam = EventCamera();
+            if (!_dragging && BepInEx.UnityInput.Current.GetMouseButtonDown(0) &&
+                RectTransformUtility.RectangleContainsScreenPoint(_root, mouse, cam))
+            {
+                _dragging = true;
+                _dragStartLocal = ToParentLocal(mouse, cam);
+                _dragStartX = _liveX = PluginConfig.OffsetX.Value;
+                _dragStartY = _liveY = PluginConfig.OffsetY.Value;
+            }
+            if (!_dragging)
+                return;
+            if (!BepInEx.UnityInput.Current.GetMouseButton(0))
+            {
+                EndDrag();
+                return;
+            }
+            Vector2 now = ToParentLocal(mouse, cam);
+            Vec2 o = PanelLayout.OffsetAfterDrag(PluginConfig.Anchor.Value, _dragStartX, _dragStartY, now.x - _dragStartLocal.x, now.y - _dragStartLocal.y);
+            _liveX = o.X;
+            _liveY = o.Y;
+            ApplyPosition(_liveX, _liveY);
+        }
+
+        /// <summary>Writes the offset once, on release (or when the modifier is let go mid-drag).</summary>
+        private void EndDrag()
+        {
+            _dragging = false;
+            PluginConfig.OffsetX.Value = Mathf.Round(_liveX);
+            PluginConfig.OffsetY.Value = Mathf.Round(_liveY);
+        }
+
+        private Camera EventCamera()
+        {
+            Canvas canvas = _root.GetComponentInParent<Canvas>();
+            canvas = canvas != null ? canvas.rootCanvas : null;
+            return canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+        }
+
+        private Vector2 ToParentLocal(Vector2 screen, Camera cam)
+        {
+            Vector2 local;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)_root.parent, screen, cam, out local);
+            return local;
         }
 
         private void Bind(RowList list)
