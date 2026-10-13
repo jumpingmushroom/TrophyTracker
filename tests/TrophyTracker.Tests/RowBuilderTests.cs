@@ -116,7 +116,7 @@ public class RowBuilderTests
     }
 
     [Fact]
-    public void RecentKillComesFirstForSixtySecondsUnlessPinnedOrCollected()
+    public void RecentKillComesFirstForSixtySecondsUnlessPinned()
     {
         RowInputs i = Inputs("TrophyFenring");
         i.RecentToken = "$enemy_surtling";
@@ -131,7 +131,9 @@ public class RowBuilderTests
 
         i.Now = 100f;
         i.Collected.Add("TrophySurtling");
-        Assert.Single(RowBuilder.Build(i).Rows);
+        rows = RowBuilder.Build(i).Rows;
+        Assert.Equal(new[] { "TrophySurtling", "TrophyFenring" }, rows.Select(r => r.TrophyId).ToArray());
+        Assert.True(rows[0].Recent);
 
         i.Collected.Clear();
         i.ShowRecent = false;

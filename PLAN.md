@@ -245,7 +245,7 @@ Hidden in every other state.
 ### 3.3 Which rows
 
 1. The **recent-kill row** first, highlighted, if `ShowRecentKill` and you killed something in the
-   last `RecentKillSeconds` (60) whose trophy is not pinned and not collected.
+   last `RecentKillSeconds` (60) whose trophy is not pinned. Collected or not does not matter.
 2. **Pinned rows** in pin order.
 3. Rows for undiscovered creatures are never shown, even if pinned.
 4. At most `MaxRows` (8); the rest collapse into `+N more`.
@@ -282,7 +282,7 @@ Hidden in every other state.
 | Text | `Bold` | true |
 | Text | `Outline` | 0.25 (0–0.5) |
 | Text | `BackgroundOpacity` | 0.72 (0–1) |
-| Text | `Font` | "(HUD font)" (dropdown of every loaded TMP font; bound once the panel is first built) |
+| Text | `Font` | "Valheim-Norsebold" (dropdown of every loaded TMP font plus "(HUD font)"; bound once the panel is first built) |
 
 ---
 

@@ -13,6 +13,9 @@ namespace TrophyTracker
         /// <summary>Font's own sentinel value: follow the HUD font instead of a specific one.</summary>
         public const string HudFontLabel = "(HUD font)";
 
+        /// <summary>Preferred default font, used when the game has it loaded; falls back to <see cref="HudFontLabel"/>.</summary>
+        public const string DefaultFont = "Valheim-Norsebold";
+
         public static ConfigEntry<bool> Enabled;
         public static ConfigEntry<KeyboardShortcut> ToggleKey;
 
@@ -69,7 +72,7 @@ namespace TrophyTracker
             UnpinWhenCollected = cfg.Bind("Pins", "UnpinWhenCollected", true,
                 new ConfigDescription("Unpin a trophy a few seconds after you collect it for the first time.", null, Attr(89)));
             ShowRecentKill = cfg.Bind("Pins", "ShowRecentKill", true,
-                new ConfigDescription("Show the trophy of the creature you last killed for a while, if it isn't pinned or collected.", null, Attr(88)));
+                new ConfigDescription("Show the trophy of the creature you last killed for a while, if it isn't pinned.", null, Attr(88)));
             RecentKillSeconds = cfg.Bind("Pins", "RecentKillSeconds", 60f,
                 new ConfigDescription("How long the recent-kill row stays.", new AcceptableValueRange<float>(5f, 600f), Attr(87)));
 
@@ -125,11 +128,13 @@ namespace TrophyTracker
         {
             if (Font != null)
                 return;
+            var loaded = new List<string>(names.Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal));
             var values = new List<string> { HudFontLabel };
-            values.AddRange(names.Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal));
-            Font = _cfg.Bind("Text", "Font", HudFontLabel,
+            values.AddRange(loaded);
+            string defaultFont = loaded.Contains(DefaultFont, StringComparer.Ordinal) ? DefaultFont : HudFontLabel;
+            Font = _cfg.Bind("Text", "Font", defaultFont,
                 new ConfigDescription(
-                    "Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text.",
+                    "Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text. Default: Valheim-Norsebold.",
                     new AcceptableValueList<string>(values.ToArray()), Attr(55)));
         }
     }

@@ -63,8 +63,6 @@ namespace TrophyTracker.Core.Model
             {
                 if (pinned.Contains(id))
                     continue;
-                if (i.Collected.Contains(id) && !Flashing(i, id))
-                    continue;
                 if (!i.Discovered.IsTrophyDiscovered(i.Catalog.Get(id), i.Collected))
                     continue;
                 return id;

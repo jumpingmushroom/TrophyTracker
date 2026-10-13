@@ -79,7 +79,7 @@ Everything below is live in the BepInEx configuration manager (F1).
 | General | ToggleKey | `F7` | Show or hide the panel for this session. |
 | Pins | Pinned | *(empty)* | Pinned trophies, comma-separated prefab names (TrophyBoar,TrophyNeck). Click a trophy in the Compendium to pin or unpin it. |
 | Pins | UnpinWhenCollected | `true` | Unpin a trophy a few seconds after you collect it for the first time. |
-| Pins | ShowRecentKill | `true` | Show the trophy of the creature you last killed for a while, if it isn't pinned or collected. |
+| Pins | ShowRecentKill | `true` | Show the trophy of the creature you last killed for a while, if it isn't pinned. |
 | Pins | RecentKillSeconds | `60` | How long the recent-kill row stays. |
 | Layout | Anchor | `MiddleLeft` | Screen corner or edge the panel is attached to. |
 | Layout | OffsetX | `20` | Distance from the anchored edge, in HUD pixels (positive is inward; right for centre anchors). Set by dragging too. |
@@ -100,7 +100,7 @@ Everything below is live in the BepInEx configuration manager (F1).
 | Text | Bold | `true` | Bold text. Thicker strokes read better on the HUD. |
 | Text | Outline | `0.25` | Thickness of the dark outline around the text. |
 | Text | BackgroundOpacity | `0.72` | Opacity of the dark plate behind the rows. |
-| Text | Font | `(HUD font)` | Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text. |
+| Text | Font | `Valheim-Norsebold` | Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text. Default: Valheim-Norsebold. |
 
 ## Translating
 
