@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BepInEx.Configuration;
 using TrophyTracker.Core.Model;
 using UnityEngine;
@@ -8,6 +10,9 @@ namespace TrophyTracker
     /// <summary>PLAN.md §4. Everything applies live; any change raises Changed.</summary>
     public static class PluginConfig
     {
+        /// <summary>Font's own sentinel value: follow the HUD font instead of a specific one.</summary>
+        public const string HudFontLabel = "(HUD font)";
+
         public static ConfigEntry<bool> Enabled;
         public static ConfigEntry<KeyboardShortcut> ToggleKey;
 
@@ -34,7 +39,18 @@ namespace TrophyTracker
         public static ConfigEntry<bool> HideWithInventory;
         public static ConfigEntry<bool> HideWhenEmpty;
 
+        public static ConfigEntry<float> FontSize;
+        public static ConfigEntry<bool> Bold;
+        public static ConfigEntry<float> Outline;
+        public static ConfigEntry<float> BackgroundOpacity;
+
+        /// <summary>Bound later by <see cref="BindFont"/>, once the game's fonts are loaded. Null until then;
+        /// every reader must handle that.</summary>
+        public static ConfigEntry<string> Font;
+
         public static event Action Changed;
+
+        private static ConfigFile _cfg;
 
         private static ConfigurationManagerAttributes Attr(int order)
         {
@@ -43,6 +59,7 @@ namespace TrophyTracker
 
         public static void Bind(ConfigFile cfg)
         {
+            _cfg = cfg;
             Enabled = cfg.Bind("General", "Enabled", true, new ConfigDescription("Master switch.", null, Attr(100)));
             ToggleKey = cfg.Bind("General", "ToggleKey", new KeyboardShortcut(KeyCode.F7),
                 new ConfigDescription("Show or hide the panel for this session.", null, Attr(99)));
@@ -84,12 +101,36 @@ namespace TrophyTracker
                 new ConfigDescription("Hide while the inventory is open (it still shows while you hold the drag key).", null, Attr(57)));
             HideWhenEmpty = cfg.Bind("Visibility", "HideWhenEmpty", true, new ConfigDescription("Hide when there is nothing to show.", null, Attr(56)));
 
+            FontSize = cfg.Bind("Text", "FontSize", 22f,
+                new ConfigDescription("Text size of the panel's rows, before Scale.", new AcceptableValueRange<float>(12f, 40f), Attr(54)));
+            Bold = cfg.Bind("Text", "Bold", true,
+                new ConfigDescription("Bold text. Thicker strokes read better on the HUD.", null, Attr(53)));
+            Outline = cfg.Bind("Text", "Outline", 0.25f,
+                new ConfigDescription("Thickness of the dark outline around the text.", new AcceptableValueRange<float>(0f, 0.5f), Attr(52)));
+            BackgroundOpacity = cfg.Bind("Text", "BackgroundOpacity", 0.72f,
+                new ConfigDescription("Opacity of the dark plate behind the rows.", new AcceptableValueRange<float>(0f, 1f), Attr(51)));
+
             cfg.SettingChanged += (sender, args) =>
             {
                 Action handler = Changed;
                 if (handler != null)
                     handler();
             };
+        }
+
+        /// <summary>Fonts are not loaded at <see cref="Bind"/> time, so Font binds separately, once, the first
+        /// time the panel is built. A name saved by an earlier session that is no longer loaded falls back to
+        /// the default via BepInEx's own AcceptableValueList validation.</summary>
+        public static void BindFont(IEnumerable<string> names)
+        {
+            if (Font != null)
+                return;
+            var values = new List<string> { HudFontLabel };
+            values.AddRange(names.Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal));
+            Font = _cfg.Bind("Text", "Font", HudFontLabel,
+                new ConfigDescription(
+                    "Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text.",
+                    new AcceptableValueList<string>(values.ToArray()), Attr(55)));
         }
     }
 }

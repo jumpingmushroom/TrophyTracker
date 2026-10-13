@@ -29,7 +29,8 @@ design: `PLAN.md`. Implementation plan: `docs/superpowers/plans/2026-10-12-troph
 - `./build/logs.sh` shows TrophyTracker lines from the rig's BepInEx log. `./build/shot.sh <name>`
   captures the game window into `docs/images/`; `./build/crop.sh` cuts release images.
 - In game: devcommands (`spawn Boar 10 1`, `god`, `ghost`, `killall`) and the `trophytracker`
-  console command (catalog, counters, discovered set, unknown pins).
+  console command (catalog, counters, discovered set, unknown pins); `trophytracker fonts` lists
+  every TMP font the game has loaded and which one the panel is using.
 - **Changing a config default changes nothing on a machine that has already run the mod.** Delete
   `BepInEx/config/com.jumpingmushroom.trophytracker.cfg` in the rig's profile after changing one.
 

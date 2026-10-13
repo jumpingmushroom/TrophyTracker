@@ -278,6 +278,11 @@ Hidden in every other state.
 | Visibility | `HideInBuildMode` | true |
 | Visibility | `HideWithInventory` | true |
 | Visibility | `HideWhenEmpty` | true |
+| Text | `FontSize` | 22 (12–40) |
+| Text | `Bold` | true |
+| Text | `Outline` | 0.25 (0–0.5) |
+| Text | `BackgroundOpacity` | 0.72 (0–1) |
+| Text | `Font` | "(HUD font)" (dropdown of every loaded TMP font; bound once the panel is first built) |
 
 ---
 

@@ -15,14 +15,19 @@ namespace TrophyTracker.UI
     internal sealed class TrophyPanel : MonoBehaviour
     {
         private const int PoolSize = 12;
-        private const float RowHeight = 32f;
         private const float Pad = 10f;
-        private const float IconSize = 26f;
-        private const float NameWidth = 170f;
-        private const float CountWidth = 96f;
-        private const float ChanceWidth = 54f;
-        private const float Gap = 6f;
         private const float BarHeight = 3f;
+        private const float BaseFontSize = 22f;
+
+        // Geometry scales with PluginConfig.FontSize (k = FontSize / BaseFontSize); recomputed in
+        // ApplyLayout, never per frame. Initial values here match k = 1 (the default FontSize), so the
+        // pool built in Build() looks right even before the first ApplyLayout runs.
+        private float _rowHeight = 32f;
+        private float _iconSize = 26f;
+        private float _nameWidth = 170f;
+        private float _countWidth = 96f;
+        private float _chanceWidth = 54f;
+        private float _gap = 6f;
 
         private static readonly Color NameColor = new Color(1f, 1f, 1f, 0.95f);
         private static readonly Color RecentColor = new Color(0.65f, 0.85f, 1f, 1f);
@@ -90,6 +95,9 @@ namespace TrophyTracker.UI
         {
             _root = root;
 
+            // Fonts are not loaded when PluginConfig.Bind runs, so Font binds here instead, once.
+            PluginConfig.BindFont(UiUtil.AllFontNames());
+
             // Drawn above the inventory while dragging (PLAN.md §6.2); off otherwise.
             _sortCanvas = root.gameObject.AddComponent<Canvas>();
             _sortCanvas.overrideSorting = false;
@@ -103,17 +111,15 @@ namespace TrophyTracker.UI
             _plate = root.gameObject.AddComponent<Image>();
             _plate.sprite = Sprites.Plate;
             _plate.type = Image.Type.Sliced;
-            _plate.color = new Color(0f, 0f, 0f, 0.72f);
+            _plate.color = new Color(0f, 0f, 0f, PluginConfig.BackgroundOpacity.Value);
             _plate.raycastTarget = false;
             for (int i = 0; i < PoolSize; i++)
                 _rows.Add(MakeRow(i));
             _more = UiUtil.Text(root, "More", 18f);
             _more.color = MutedColor;
-            Place(_more.rectTransform, 0f, NameWidth, RowHeight);
+            Place(_more.rectTransform, 0f, _nameWidth, _rowHeight);
 
-            TMP_FontAsset font = UiUtil.Font;
-            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true);
-            _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
+            ApplyTextStyle();
 
             PluginConfig.Changed += OnConfigChanged;
         }
@@ -127,8 +133,41 @@ namespace TrophyTracker.UI
 
         private void OnConfigChanged()
         {
+            ApplyTextStyle();
             _layoutDirty = true;
             Runtime.Dirty = true;
+        }
+
+        /// <summary>Font, outline, bold and size on every text the panel owns, from config. Only on config
+        /// change, never per frame.</summary>
+        private void ApplyTextStyle()
+        {
+            TMP_FontAsset font = UiUtil.ResolveFont();
+            float size = PluginConfig.FontSize.Value;
+            float smallSize = size * 0.82f;
+            FontStyles style = PluginConfig.Bold.Value ? FontStyles.Bold : FontStyles.Normal;
+            Material material = UiUtil.TextMaterial(font, PluginConfig.Outline.Value);
+
+            StyleText(_more, font, material, style, smallSize);
+            foreach (Row row in _rows)
+            {
+                StyleText(row.Name, font, material, style, size);
+                StyleText(row.Count, font, material, style, size);
+                StyleText(row.Chance, font, material, style, smallSize);
+            }
+
+            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true);
+            _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
+        }
+
+        private static void StyleText(TextMeshProUGUI t, TMP_FontAsset font, Material material, FontStyles style, float size)
+        {
+            if (font != null)
+                t.font = font;
+            if (material != null)
+                t.fontSharedMaterial = material;
+            t.fontStyle = style;
+            t.fontSize = size;
         }
 
         private Row MakeRow(int i)
@@ -139,14 +178,14 @@ namespace TrophyTracker.UI
 
             RectTransform iconRt = UiUtil.Rect("Icon", rt);
             iconRt.anchorMin = iconRt.anchorMax = iconRt.pivot = new Vector2(0f, 1f);
-            iconRt.sizeDelta = new Vector2(IconSize, IconSize);
+            iconRt.sizeDelta = new Vector2(_iconSize, _iconSize);
             row.Icon = iconRt.gameObject.AddComponent<Image>();
             row.Icon.raycastTarget = false;
             row.Icon.preserveAspect = true;
 
-            row.Name = UiUtil.Text(rt, "Name", 22f);
+            row.Name = UiUtil.Text(rt, "Name", BaseFontSize);
             row.Name.overflowMode = TextOverflowModes.Ellipsis;
-            row.Count = UiUtil.Text(rt, "Count", 22f);
+            row.Count = UiUtil.Text(rt, "Count", BaseFontSize);
             row.Count.alignment = TextAlignmentOptions.MidlineRight;
             row.Chance = UiUtil.Text(rt, "Chance", 18f);
             row.Chance.alignment = TextAlignmentOptions.MidlineRight;
@@ -179,17 +218,26 @@ namespace TrophyTracker.UI
 
         private float RowWidth()
         {
-            float w = NameWidth + Gap + CountWidth;
+            float w = _nameWidth + _gap + _countWidth;
             if (PluginConfig.ShowIcon.Value)
-                w += IconSize + Gap;
+                w += _iconSize + _gap;
             if (PluginConfig.ShowChance.Value)
-                w += Gap + ChanceWidth;
+                w += _gap + _chanceWidth;
             return w;
         }
 
         private void ApplyLayout()
         {
             _layoutDirty = false;
+
+            float k = PluginConfig.FontSize.Value / BaseFontSize;
+            _rowHeight = 32f * k;
+            _iconSize = 26f * k;
+            _nameWidth = 170f * k;
+            _countWidth = 96f * k;
+            _chanceWidth = 54f * k;
+            _gap = 6f * k;
+
             Hud hud = Hud.instance;
             if (hud != null && _root.parent != ParentFor(hud))
                 _root.SetParent(ParentFor(hud), false);
@@ -200,6 +248,10 @@ namespace TrophyTracker.UI
             ApplyPosition(PluginConfig.OffsetX.Value, PluginConfig.OffsetY.Value);
             float s = PluginConfig.Scale.Value;
             _root.localScale = new Vector3(s, s, 1f);
+            if (!_outline)
+                _plate.color = new Color(0f, 0f, 0f, PluginConfig.BackgroundOpacity.Value);
+
+            Place(_more.rectTransform, 0f, _nameWidth, _rowHeight);
 
             bool icon = PluginConfig.ShowIcon.Value;
             float x = 0f;
@@ -207,21 +259,22 @@ namespace TrophyTracker.UI
             {
                 x = 0f;
                 row.Icon.gameObject.SetActive(icon);
+                row.Icon.rectTransform.sizeDelta = new Vector2(_iconSize, _iconSize);
                 if (icon)
                 {
-                    row.Icon.rectTransform.anchoredPosition = new Vector2(0f, -(RowHeight - BarHeight - IconSize) / 2f);
-                    x += IconSize + Gap;
+                    row.Icon.rectTransform.anchoredPosition = new Vector2(0f, -(_rowHeight - BarHeight - _iconSize) / 2f);
+                    x += _iconSize + _gap;
                 }
-                Place(row.Name.rectTransform, x, NameWidth, RowHeight - BarHeight);
-                x += NameWidth + Gap;
-                Place(row.Count.rectTransform, x, CountWidth, RowHeight - BarHeight);
-                x += CountWidth;
+                Place(row.Name.rectTransform, x, _nameWidth, _rowHeight - BarHeight);
+                x += _nameWidth + _gap;
+                Place(row.Count.rectTransform, x, _countWidth, _rowHeight - BarHeight);
+                x += _countWidth;
                 row.Chance.gameObject.SetActive(PluginConfig.ShowChance.Value);
                 if (PluginConfig.ShowChance.Value)
                 {
-                    Place(row.Chance.rectTransform, x + Gap, ChanceWidth, RowHeight - BarHeight);
+                    Place(row.Chance.rectTransform, x + _gap, _chanceWidth, _rowHeight - BarHeight);
                 }
-                float barX = icon ? IconSize + Gap : 0f;
+                float barX = icon ? _iconSize + _gap : 0f;
                 row.BarBack.rectTransform.anchoredPosition = new Vector2(barX, 0f);
                 row.BarBack.rectTransform.sizeDelta = new Vector2(RowWidth() - barX, BarHeight);
                 row.BarFront.rectTransform.anchoredPosition = new Vector2(barX, 0f);
@@ -290,7 +343,7 @@ namespace TrophyTracker.UI
                 _outline = mode;
                 _sortCanvas.overrideSorting = mode;
                 _sortCanvas.sortingOrder = mode ? 30000 : 0;
-                _plate.color = mode ? new Color(0.25f, 0.2f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, 0.72f);
+                _plate.color = mode ? new Color(0.25f, 0.2f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, PluginConfig.BackgroundOpacity.Value);
             }
             if (!mode)
             {
@@ -358,8 +411,8 @@ namespace TrophyTracker.UI
                 if (!on)
                     continue;
                 RowView v = list.Rows[i];
-                row.Rect.anchoredPosition = new Vector2(Pad, -Pad - i * RowHeight);
-                row.Rect.sizeDelta = new Vector2(width, RowHeight);
+                row.Rect.anchoredPosition = new Vector2(Pad, -Pad - i * _rowHeight);
+                row.Rect.sizeDelta = new Vector2(width, _rowHeight);
                 if (row.BoundTrophy != v.TrophyId)
                 {
                     row.BoundTrophy = v.TrophyId;
@@ -394,10 +447,10 @@ namespace TrophyTracker.UI
             if (list.More > 0)
             {
                 SetText(_more, RowText.More(list.More, Runtime.Tr));
-                _more.rectTransform.anchoredPosition = new Vector2(Pad, -Pad - lines * RowHeight);
+                _more.rectTransform.anchoredPosition = new Vector2(Pad, -Pad - lines * _rowHeight);
                 lines++;
             }
-            _root.sizeDelta = new Vector2(width + 2f * Pad, Math.Max(1, lines) * RowHeight + 2f * Pad);
+            _root.sizeDelta = new Vector2(width + 2f * Pad, Math.Max(1, lines) * _rowHeight + 2f * Pad);
         }
 
         private static void SetText(TextMeshProUGUI t, string text)

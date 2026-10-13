@@ -2,22 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using TMPro;
 using TrophyTracker.Core.Model;
+using TrophyTracker.UI;
 
 namespace TrophyTracker.Core
 {
     /// <summary>"trophytracker": the catalog with every source, live counters with decoded tier, the discovered
-    /// set and unknown pins (PLAN.md §7). Mirrored to the BepInEx log.</summary>
+    /// set and unknown pins (PLAN.md §7). "trophytracker fonts": every loaded TMP font and which one the panel
+    /// uses now. Mirrored to the BepInEx log.</summary>
     internal static class TrophyConsole
     {
         public static void Register()
         {
-            new Terminal.ConsoleCommand("trophytracker", "TrophyTracker: trophies, their sources, live counters, discovered creatures",
+            new Terminal.ConsoleCommand("trophytracker", "TrophyTracker: trophies, their sources, live counters, discovered creatures (fonts: every loaded font and the one in use)",
                 delegate (Terminal.ConsoleEventArgs args)
                 {
                     try
                     {
-                        Dump(args.Context);
+                        string sub = args.Length > 1 ? args[1].ToLowerInvariant() : "";
+                        if (sub == "fonts")
+                            Fonts(args.Context);
+                        else
+                            Dump(args.Context);
                     }
                     catch (Exception e)
                     {
@@ -36,6 +43,16 @@ namespace TrophyTracker.Core
         private static string Pct(float chance)
         {
             return (chance * 100f).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+        }
+
+        private static void Fonts(Terminal ctx)
+        {
+            List<string> names = UiUtil.AllFontNames().ToList();
+            TMP_FontAsset current = UiUtil.ResolveFont();
+            string currentName = current != null ? current.name : "(none)";
+            Say(ctx, "TrophyTracker: " + names.Count + " fonts loaded, panel uses " + currentName + ".");
+            foreach (string n in names)
+                Say(ctx, "  " + n);
         }
 
         private static void Dump(Terminal ctx)

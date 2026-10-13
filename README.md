@@ -96,6 +96,11 @@ Everything below is live in the BepInEx configuration manager (F1).
 | Visibility | HideInBuildMode | `true` | Hide while placing buildings. |
 | Visibility | HideWithInventory | `true` | Hide while the inventory is open (it still shows while you hold the drag key). |
 | Visibility | HideWhenEmpty | `true` | Hide when there is nothing to show. |
+| Text | FontSize | `22` | Text size of the panel's rows, before Scale. |
+| Text | Bold | `true` | Bold text. Thicker strokes read better on the HUD. |
+| Text | Outline | `0.25` | Thickness of the dark outline around the text. |
+| Text | BackgroundOpacity | `0.72` | Opacity of the dark plate behind the rows. |
+| Text | Font | `(HUD font)` | Font of the panel's text. The list holds every font the game has loaded; '(HUD font)' follows the game's own HUD text. |
 
 ## Translating
 
