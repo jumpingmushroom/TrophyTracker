@@ -30,7 +30,7 @@ are the same as Earshot's and Forewarned's. No publish tooling: releases end at
 - **Positioning:** config (anchor preset, X/Y offset, scale) **and** a drag mode (inventory open
   + hold Left Alt + drag) that writes the offset back to config. Default anchor MiddleLeft, clear
   of MyLittleUI's top-right stack.
-- **Rows:** pinned trophies, plus the trophy of the creature you last killed for 60 s.
+- **Rows:** pinned trophies, plus the trophy of the creature you last killed until the next creature with a trophy is killed (configurable via `RecentKillSeconds`; 0 = never expire).
 - **Pinning:** click a trophy in the Compendium to toggle; a pin badge marks pinned ones. The pin
   list is also a config string. Start fresh: no import from TrophyPercent's config.
 - **Every trophy is pinnable** (taken from `ObjectDB`, not from drop tables), but only for
@@ -245,7 +245,7 @@ Hidden in every other state.
 ### 3.3 Which rows
 
 1. The **recent-kill row** first, highlighted, if `ShowRecentKill` and you killed something in the
-   last `RecentKillSeconds` (60) whose trophy is not pinned. Collected or not does not matter.
+   last `RecentKillSeconds` (0) whose trophy is not pinned. Collected or not does not matter.
 2. **Pinned rows** in pin order.
 3. Rows for undiscovered creatures are never shown, even if pinned.
 4. At most `MaxRows` (8); the rest collapse into `+N more`.
@@ -264,7 +264,7 @@ Hidden in every other state.
 | Pins | `Pinned` | empty (comma-separated trophy prefab names) |
 | Pins | `UnpinWhenCollected` | true |
 | Pins | `ShowRecentKill` | true |
-| Pins | `RecentKillSeconds` | 60 |
+| Pins | `RecentKillSeconds` | 0 |
 | Layout | `Anchor` | MiddleLeft (TopLeft … BottomRight, 9 presets) |
 | Layout | `OffsetX` | 20 |
 | Layout | `OffsetY` | 0 |

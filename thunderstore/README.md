@@ -80,7 +80,7 @@ Everything below is live in the BepInEx configuration manager (F1).
 | Pins | Pinned | *(empty)* | Pinned trophies, comma-separated prefab names (TrophyBoar,TrophyNeck). Click a trophy in the Compendium to pin or unpin it. |
 | Pins | UnpinWhenCollected | `true` | Unpin a trophy a few seconds after you collect it for the first time. |
 | Pins | ShowRecentKill | `true` | Show the trophy of the creature you last killed for a while, if it isn't pinned. |
-| Pins | RecentKillSeconds | `60` | How long the recent-kill row stays. |
+| Pins | RecentKillSeconds | `0` | How long the recent-kill row stays, in seconds. 0 keeps it until you kill another creature that drops a trophy. |
 | Layout | Anchor | `MiddleLeft` | Screen corner or edge the panel is attached to. |
 | Layout | OffsetX | `20` | Distance from the anchored edge, in HUD pixels (positive is inward; right for centre anchors). Set by dragging too. |
 | Layout | OffsetY | `0` | Distance from the anchored edge, in HUD pixels (positive is inward; up for middle anchors). Set by dragging too. |

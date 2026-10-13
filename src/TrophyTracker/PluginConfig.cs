@@ -73,8 +73,8 @@ namespace TrophyTracker
                 new ConfigDescription("Unpin a trophy a few seconds after you collect it for the first time.", null, Attr(89)));
             ShowRecentKill = cfg.Bind("Pins", "ShowRecentKill", true,
                 new ConfigDescription("Show the trophy of the creature you last killed for a while, if it isn't pinned.", null, Attr(88)));
-            RecentKillSeconds = cfg.Bind("Pins", "RecentKillSeconds", 60f,
-                new ConfigDescription("How long the recent-kill row stays.", new AcceptableValueRange<float>(5f, 600f), Attr(87)));
+            RecentKillSeconds = cfg.Bind("Pins", "RecentKillSeconds", 0f,
+                new ConfigDescription("How long the recent-kill row stays, in seconds. 0 keeps it until you kill another creature that drops a trophy.", new AcceptableValueRange<float>(0f, 600f), Attr(87)));
 
             Anchor = cfg.Bind("Layout", "Anchor", PanelAnchor.MiddleLeft,
                 new ConfigDescription("Screen corner or edge the panel is attached to.", null, Attr(80)));

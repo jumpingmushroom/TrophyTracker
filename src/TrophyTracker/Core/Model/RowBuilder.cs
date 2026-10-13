@@ -57,7 +57,7 @@ namespace TrophyTracker.Core.Model
 
         private static string RecentTrophy(RowInputs i, HashSet<string> pinned)
         {
-            if (!i.ShowRecent || i.RecentToken == null || i.Now - i.RecentTime > i.RecentSeconds)
+            if (!i.ShowRecent || i.RecentToken == null || (i.RecentSeconds > 0f && i.Now - i.RecentTime > i.RecentSeconds))
                 return null;
             foreach (string id in i.Catalog.TrophiesForToken(i.RecentToken))
             {

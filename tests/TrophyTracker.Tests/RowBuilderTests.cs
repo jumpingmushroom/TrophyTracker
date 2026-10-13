@@ -165,4 +165,18 @@ public class RowBuilderTests
         Assert.Equal(2, list.More);
         Assert.Equal("TrophyFenring", list.Rows[0].TrophyId);
     }
+
+    [Fact]
+    public void RecentKillWithZeroSecondsNeverExpires()
+    {
+        RowInputs i = Inputs("TrophyFenring");
+        i.RecentToken = "$enemy_surtling";
+        i.RecentTime = 50f;
+        i.RecentSeconds = 0f;
+        i.Now = 100000f;
+        List<RowView> rows = RowBuilder.Build(i).Rows;
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("TrophySurtling", rows[0].TrophyId);
+        Assert.True(rows[0].Recent);
+    }
 }
