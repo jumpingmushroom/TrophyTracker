@@ -69,6 +69,11 @@ namespace TrophyTracker.UI
         private float _liveX;
         private float _liveY;
         private bool _outline;
+        private TMP_FontAsset _styledFont;
+        private Material _styledMaterial;
+        private FontStyles _styledStyle;
+        private float _styledSize;
+        private bool _styled;
 
         public static void Ensure()
         {
@@ -95,8 +100,9 @@ namespace TrophyTracker.UI
         {
             _root = root;
 
-            // Fonts are not loaded when PluginConfig.Bind runs, so Font binds here instead, once.
-            PluginConfig.BindFont(UiUtil.AllFontNames());
+            // Fonts are not loaded when PluginConfig.Bind runs, so Font binds here instead, once; the same
+            // scan also seeds UiUtil.ResolveFont's name lookup.
+            PluginConfig.BindFont(UiUtil.ScanFonts());
 
             // Drawn above the inventory while dragging (PLAN.md §6.2); off otherwise.
             _sortCanvas = root.gameObject.AddComponent<Canvas>();
@@ -115,7 +121,7 @@ namespace TrophyTracker.UI
             _plate.raycastTarget = false;
             for (int i = 0; i < PoolSize; i++)
                 _rows.Add(MakeRow(i));
-            _more = UiUtil.Text(root, "More", 18f);
+            _more = UiUtil.Text(root, "More", BaseFontSize * 0.82f);
             _more.color = MutedColor;
             Place(_more.rectTransform, 0f, _nameWidth, _rowHeight);
 
@@ -144,10 +150,20 @@ namespace TrophyTracker.UI
         {
             TMP_FontAsset font = UiUtil.ResolveFont();
             float size = PluginConfig.FontSize.Value;
-            float smallSize = size * 0.82f;
             FontStyles style = PluginConfig.Bold.Value ? FontStyles.Bold : FontStyles.Normal;
             Material material = UiUtil.TextMaterial(font, PluginConfig.Outline.Value);
 
+            // Config changes unrelated to Text (Scale, OffsetX, ...) also raise Changed; skip the work
+            // (and the TMP mesh rebuilds it would trigger on every text) when nothing here actually moved.
+            if (_styled && font == _styledFont && material == _styledMaterial && style == _styledStyle && size == _styledSize)
+                return;
+            _styled = true;
+            _styledFont = font;
+            _styledMaterial = material;
+            _styledStyle = style;
+            _styledSize = size;
+
+            float smallSize = size * 0.82f;
             StyleText(_more, font, material, style, smallSize);
             foreach (Row row in _rows)
             {
@@ -187,7 +203,7 @@ namespace TrophyTracker.UI
             row.Name.overflowMode = TextOverflowModes.Ellipsis;
             row.Count = UiUtil.Text(rt, "Count", BaseFontSize);
             row.Count.alignment = TextAlignmentOptions.MidlineRight;
-            row.Chance = UiUtil.Text(rt, "Chance", 18f);
+            row.Chance = UiUtil.Text(rt, "Chance", BaseFontSize * 0.82f);
             row.Chance.alignment = TextAlignmentOptions.MidlineRight;
             row.Chance.color = MutedColor;
 

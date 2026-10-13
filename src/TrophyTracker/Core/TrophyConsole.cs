@@ -47,7 +47,8 @@ namespace TrophyTracker.Core
 
         private static void Fonts(Terminal ctx)
         {
-            List<string> names = UiUtil.AllFontNames().ToList();
+            // Rescans (unlike the panel, which scans once at Build) so a font loaded since shows up.
+            List<string> names = UiUtil.ScanFonts().ToList();
             TMP_FontAsset current = UiUtil.ResolveFont();
             string currentName = current != null ? current.name : "(none)";
             Say(ctx, "TrophyTracker: " + names.Count + " fonts loaded, panel uses " + currentName + ".");

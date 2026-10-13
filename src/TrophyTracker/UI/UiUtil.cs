@@ -27,57 +27,57 @@ namespace TrophyTracker.UI
             }
         }
 
-        /// <summary>Every TMP font asset the game currently has loaded, distinct by name, sorted ordinal.</summary>
-        public static IEnumerable<string> AllFontNames()
+        private static Dictionary<string, TMP_FontAsset> _fontsByName;
+
+        /// <summary>Scans every loaded TMP_FontAsset once (first match wins on a duplicate name), caches it
+        /// by name for ResolveFont, and returns the names, distinct and sorted ordinal. Call once, when the
+        /// panel is first built — the same scan feeds PluginConfig.BindFont. The console command's "fonts"
+        /// rescans on demand, in case more fonts loaded since.</summary>
+        public static IEnumerable<string> ScanFonts()
         {
-            return Resources.FindObjectsOfTypeAll<TMP_FontAsset>()
-                .Select(f => f.name)
-                .Distinct(StringComparer.Ordinal)
-                .OrderBy(n => n, StringComparer.Ordinal);
+            var map = new Dictionary<string, TMP_FontAsset>(StringComparer.Ordinal);
+            foreach (TMP_FontAsset asset in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
+            {
+                if (!map.ContainsKey(asset.name))
+                    map[asset.name] = asset;
+            }
+            _fontsByName = map;
+            return map.Keys.OrderBy(n => n, StringComparer.Ordinal);
         }
 
-        /// <summary>The panel's configured font: a name match against the loaded fonts, or the HUD font if
-        /// unset, "(HUD font)", or no longer loaded.</summary>
+        /// <summary>The panel's configured font: a name match against the fonts from the last ScanFonts, or
+        /// the HUD font if unset, "(HUD font)", not found, or ScanFonts has not run yet.</summary>
         public static TMP_FontAsset ResolveFont()
         {
             string name = PluginConfig.Font != null ? PluginConfig.Font.Value : null;
-            if (!string.IsNullOrEmpty(name) && name != PluginConfig.HudFontLabel)
-            {
-                foreach (TMP_FontAsset asset in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
-                {
-                    if (string.Equals(asset.name, name, StringComparison.Ordinal))
-                        return asset;
-                }
-            }
+            TMP_FontAsset asset;
+            if (!string.IsNullOrEmpty(name) && name != PluginConfig.HudFontLabel &&
+                _fontsByName != null && _fontsByName.TryGetValue(name, out asset))
+                return asset;
             return Font;
         }
 
-        private static readonly Dictionary<TMP_FontAsset, Dictionary<float, Material>> _materials =
-            new Dictionary<TMP_FontAsset, Dictionary<float, Material>>();
+        private static readonly Dictionary<TMP_FontAsset, Material> _materials = new Dictionary<TMP_FontAsset, Material>();
 
-        /// <summary>An outlined copy of the font's material for the given outline width, cached per
-        /// (font, width); width 0 returns the font's own plain material. So text reads against snow and sky.</summary>
+        /// <summary>One outlined material per font, its width updated in place (SetFloat) rather than a new
+        /// material per value; width 0 returns the font's own plain material instead. Only the panel uses the
+        /// shared material, so mutating it live is safe. So text reads against snow and sky.</summary>
         public static Material TextMaterial(TMP_FontAsset font, float outlineWidth)
         {
             if (font == null)
                 return null;
             if (outlineWidth <= 0f)
                 return font.material;
-            Dictionary<float, Material> byWidth;
-            if (!_materials.TryGetValue(font, out byWidth))
-            {
-                byWidth = new Dictionary<float, Material>();
-                _materials[font] = byWidth;
-            }
             Material mat;
-            if (byWidth.TryGetValue(outlineWidth, out mat))
-                return mat;
-            mat = new Material(font.material);
-            mat.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            if (!_materials.TryGetValue(font, out mat))
+            {
+                mat = new Material(font.material);
+                mat.EnableKeyword(ShaderUtilities.Keyword_Outline);
+                mat.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0f, 0f, 0f, 1f));
+                mat.hideFlags = HideFlags.HideAndDontSave;
+                _materials[font] = mat;
+            }
             mat.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
-            mat.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0f, 0f, 0f, 1f));
-            mat.hideFlags = HideFlags.HideAndDontSave;
-            byWidth[outlineWidth] = mat;
             return mat;
         }
 
