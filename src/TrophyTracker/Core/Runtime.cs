@@ -56,6 +56,9 @@ namespace TrophyTracker.Core
 
         public static void OnKill(string nameToken)
         {
+            // Kills of creatures that drop no trophy (Greylings) keep the previous recent row.
+            if (Catalog == null || Catalog.TrophiesForToken(nameToken).Count == 0)
+                return;
             _recentToken = nameToken;
             _recentTime = Time.time;
             Dirty = true;
