@@ -25,7 +25,7 @@ namespace TrophyTracker.UI
         private float _rowHeight = 32f;
         private float _iconSize = 26f;
         private float _nameWidth = 170f;
-        private float _countWidth = 96f;
+        private float _countWidth = 150f;
         private float _chanceWidth = 54f;
         private float _gap = 6f;
 
@@ -250,7 +250,7 @@ namespace TrophyTracker.UI
             _rowHeight = 32f * k;
             _iconSize = 26f * k;
             _nameWidth = 170f * k;
-            _countWidth = 96f * k;
+            _countWidth = 150f * k;
             _chanceWidth = 54f * k;
             _gap = 6f * k;
 

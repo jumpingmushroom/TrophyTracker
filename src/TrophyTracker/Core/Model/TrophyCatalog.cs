@@ -10,6 +10,9 @@ namespace TrophyTracker.Core.Model
         public string NameToken;
         public float Chance;
         public bool LevelMultiplier;
+        /// <summary>1.0.20 m_levelMultiplierNotAmount: stars raise the chance but not the amount. Informational
+        /// (console); the chance and counter maths are the same either way.</summary>
+        public bool LevelMultiplierNotAmount;
     }
 
     public sealed class TrophyInfo

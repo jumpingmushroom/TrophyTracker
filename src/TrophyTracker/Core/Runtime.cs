@@ -79,6 +79,7 @@ namespace TrophyTracker.Core
                 Discovered = Discovered,
                 Collected = Discovery.Collected(),
                 Counters = CounterReader.Snapshot(),
+                Hash = s => s.GetStableHashCode(),
                 Kills = Discovery.Kills(),
                 Bars = Bars,
                 FlashUntil = FlashUntil,

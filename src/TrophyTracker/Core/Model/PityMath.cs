@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 
 namespace TrophyTracker.Core.Model
 {
     /// <summary>
     /// PLAN.md §1.1-1.2: the arithmetic of CharacterDrop.GenerateDropList, mirrored. Float expressions are
-    /// written exactly as the game writes them, because the game compares the stored chance with ==.
+    /// written exactly as the game writes them, because the effective chance is truncated into the counter key.
     /// </summary>
     public static class PityMath
     {
@@ -46,17 +47,34 @@ namespace TrophyTracker.Core.Model
             return Math.Max(1, remaining);
         }
 
-        /// <summary>The star tier whose effective chance equals the stored chance exactly, or -1.</summary>
-        public static int MatchTier(float stored, float baseChance, bool levelMultiplier)
+        /// <summary>From a stored count n the drop lands on kill max(1, n). Right after a drop the game reseeds
+        /// Random.Range(0, (int)(1/p × 2) + 2): at most SeedBound + 1 kills to the next one (PLAN.md §1.2).</summary>
+        public static int ReseedMax(float p)
         {
-            if (!levelMultiplier)
-                return stored == baseChance ? 0 : -1;
-            for (int stars = 0; stars <= MaxStars; stars++)
+            return SeedBound(p) + 1;
+        }
+
+        /// <summary>The s_pseudoCounter key: the trophy prefab name's GetStableHashCode plus the effective chance in
+        /// thousandths, one counter per (trophy, star tier). Written exactly as the game writes it: the float
+        /// product is truncated by the same JIT the game runs under, so the key matches the game's bit for bit.
+        /// Unchecked int addition, like the game.</summary>
+        public static int CounterKey(int trophyHash, float effectiveChance)
+        {
+            return trophyHash + (int)(effectiveChance * 1000f);
+        }
+
+        /// <summary>The star tiers 0..MaxStars whose effective chance still uses pity (each has its own counter).
+        /// Without a level multiplier every star shares the 0★ chance, so only tier 0. Empty when none uses pity.</summary>
+        public static List<int> PityTiers(float baseChance, bool levelMultiplier, bool noPseudoDrops)
+        {
+            var tiers = new List<int>();
+            int top = levelMultiplier ? MaxStars : 0;
+            for (int stars = 0; stars <= top; stars++)
             {
-                if (EffectiveChance(baseChance, true, stars) == stored)
-                    return stars;
+                if (UsesPity(EffectiveChance(baseChance, levelMultiplier, stars), noPseudoDrops))
+                    tiers.Add(stars);
             }
-            return -1;
+            return tiers;
         }
     }
 }

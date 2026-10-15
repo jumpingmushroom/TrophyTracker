@@ -44,12 +44,32 @@ public class PityMathTests
     }
 
     [Fact]
-    public void MatchTierFindsTheStarTierFromTheStoredChance()
+    public void CounterKeyIsTheGamesHashPlusTheChanceInThousandths()
     {
-        Assert.Equal(0, PityMath.MatchTier(0.1f, 0.1f, true));
-        Assert.Equal(1, PityMath.MatchTier(0.1f * 2f, 0.1f, true));
-        Assert.Equal(-1, PityMath.MatchTier(0.15f, 0.1f, true));
-        Assert.Equal(0, PityMath.MatchTier(0.1f, 0.1f, false));
-        Assert.Equal(-1, PityMath.MatchTier(0.2f, 0.1f, false));
+        Assert.Equal(1000 + 100, PityMath.CounterKey(1000, 0.1f));
+        Assert.Equal(1000 + 200, PityMath.CounterKey(1000, PityMath.EffectiveChance(0.1f, true, 1)));
+        Assert.Equal(-500 + 50, PityMath.CounterKey(-500, 0.05f));
+        Assert.NotEqual(PityMath.CounterKey(7, 0.1f), PityMath.CounterKey(7, 0.2f));
+    }
+
+    [Theory]
+    [InlineData(0.1f, 21)]
+    [InlineData(0.05f, 41)]
+    [InlineData(0.2f, 11)]
+    [InlineData(0.3f, 7)]
+    public void ReseedMaxIsOneAboveTheSeedBound(float p, int expected)
+    {
+        Assert.Equal(expected, PityMath.ReseedMax(p));
+    }
+
+    [Theory]
+    [InlineData(0.1f, true, false, new[] { 0, 1 })]
+    [InlineData(0.05f, true, false, new[] { 0, 1, 2 })]
+    [InlineData(0.1f, false, false, new[] { 0 })]
+    [InlineData(0.5f, true, false, new int[0])]
+    [InlineData(0.1f, true, true, new int[0])]
+    public void PityTiersAreTheStarLevelsStillAtOrBelowThirtyPercent(float b, bool lm, bool noPseudo, int[] expected)
+    {
+        Assert.Equal(expected, PityMath.PityTiers(b, lm, noPseudo).ToArray());
     }
 }

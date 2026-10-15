@@ -78,7 +78,7 @@ namespace TrophyTracker.Core.Model
 
         private static RowView Row(RowInputs i, TrophyInfo t, bool recent)
         {
-            var v = new RowView { TrophyId = t.Id, Stars = -1, ChancePercent = -1f, BarFill = -1f, Recent = recent };
+            var v = new RowView { TrophyId = t.Id, ChancePercent = -1f, BarFill = -1f, Recent = recent };
             DropSource s = PrimarySource(t, i.Kills, i.Discovered);
             if (s != null)
             {
@@ -107,20 +107,49 @@ namespace TrophyTracker.Core.Model
                 return v;
             }
 
-            CounterEntry c;
-            if (i.Counters != null && i.Counters.TryGetValue(t.Id, out c))
+            if (i.Hash == null || i.Counters == null)
             {
-                v.State = RowState.Exact;
-                v.Count = PityMath.KillsLeft(c.Remaining);
-                v.Stars = s.LevelMultiplier ? PityMath.MatchTier(c.Chance, s.Chance, true) : -1;
-                v.BarFill = i.Bars != null ? i.Bars.Fill(t.Id, c) : -1f;
-                v.Dim = i.Dim;
+                v.State = RowState.Unknown;
+                v.Count = PityMath.WorstCaseUnseeded(s.Chance);
                 return v;
             }
-
-            v.State = RowState.Unknown;
-            v.Count = PityMath.WorstCaseUnseeded(s.Chance);
+            int key0 = PityMath.CounterKey(i.Hash(t.Id), PityMath.EffectiveChance(s.Chance, s.LevelMultiplier, 0));
+            int c;
+            if (i.Counters.TryGetValue(key0, out c))
+            {
+                v.State = RowState.Exact;
+                v.Count = PityMath.KillsLeft(c);
+                v.BarFill = i.Bars != null ? i.Bars.Fill(key0, c) : -1f;
+                v.Dim = i.Dim;
+            }
+            else
+            {
+                v.State = RowState.Unknown;
+                v.Count = PityMath.WorstCaseUnseeded(s.Chance);
+            }
+            v.Extras = Extras(i, t, s);
             return v;
+        }
+
+        /// <summary>Starred tiers that still use pity and have a counter of their own (PLAN.md §1.1, §3.2).</summary>
+        private static List<TierCount> Extras(RowInputs i, TrophyInfo t, DropSource s)
+        {
+            if (i.Counters.Count == 0 || !s.LevelMultiplier)
+                return null;
+            List<TierCount> extras = null;
+            int hash = i.Hash(t.Id);
+            foreach (int stars in PityMath.PityTiers(s.Chance, s.LevelMultiplier, i.NoPseudoDrops))
+            {
+                if (stars == 0)
+                    continue;
+                int c;
+                if (!i.Counters.TryGetValue(PityMath.CounterKey(hash, PityMath.EffectiveChance(s.Chance, true, stars)), out c))
+                    continue;
+                if (extras == null)
+                    extras = new List<TierCount>();
+                extras.Add(new TierCount { Stars = stars, KillsLeft = PityMath.KillsLeft(c) });
+            }
+            return extras;
         }
     }
 }

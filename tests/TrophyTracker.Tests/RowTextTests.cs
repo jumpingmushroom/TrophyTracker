@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TrophyTracker.Core.Model;
 using Xunit;
 
@@ -8,8 +9,8 @@ public class RowTextTests
     [Fact]
     public void FormatsEveryState()
     {
-        Assert.Equal("7 ★0", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Stars = 0 }, Tr, Glyphs.Unicode));
-        Assert.Equal("7", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Stars = -1 }, Tr, Glyphs.Unicode));
+        Assert.Equal("7", RowText.Count(new RowView { State = RowState.Exact, Count = 7 }, Tr, Glyphs.Unicode));
+        Assert.Equal("7", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Extras = new List<TierCount>() }, Tr, Glyphs.Unicode));
         Assert.Equal("? max 20", RowText.Count(new RowView { State = RowState.Unknown, Count = 20 }, Tr, Glyphs.Unicode));
         Assert.Equal("roll", RowText.Count(new RowView { State = RowState.Roll }, Tr, Glyphs.Unicode));
         Assert.Equal("always", RowText.Count(new RowView { State = RowState.Always }, Tr, Glyphs.Unicode));
@@ -20,8 +21,25 @@ public class RowTextTests
     [Fact]
     public void AsciiGlyphsWhenTheFontLacksTheSymbols()
     {
-        Assert.Equal("3 *1", RowText.Count(new RowView { State = RowState.Exact, Count = 3, Stars = 1 }, Tr, Glyphs.Ascii));
         Assert.Equal("? max 40", RowText.Count(new RowView { State = RowState.Unknown, Count = 40 }, Tr, Glyphs.Ascii));
+        Assert.Equal("7  *1:3", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Extras = Tiers(1, 3) }, Tr, Glyphs.Ascii));
+    }
+
+    private static List<TierCount> Tiers(params int[] starsThenKills)
+    {
+        var list = new List<TierCount>();
+        for (int k = 0; k + 1 < starsThenKills.Length; k += 2)
+            list.Add(new TierCount { Stars = starsThenKills[k], KillsLeft = starsThenKills[k + 1] });
+        return list;
+    }
+
+    [Fact]
+    public void StarredTierCountdownsFollowTheMainCount()
+    {
+        Assert.Equal("7  ★1:3", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Extras = Tiers(1, 3) }, Tr, Glyphs.Unicode));
+        Assert.Equal("7  ★1:3 ★2:5", RowText.Count(new RowView { State = RowState.Exact, Count = 7, Extras = Tiers(1, 3, 2, 5) }, Tr, Glyphs.Unicode));
+        Assert.Equal("? max 19  ★1:3", RowText.Count(new RowView { State = RowState.Unknown, Count = 19, Extras = Tiers(1, 3) }, Tr, Glyphs.Unicode));
+        Assert.Equal("? max 19  *1:3 *2:5", RowText.Count(new RowView { State = RowState.Unknown, Count = 19, Extras = Tiers(1, 3, 2, 5) }, Tr, Glyphs.Ascii));
     }
 
     [Theory]

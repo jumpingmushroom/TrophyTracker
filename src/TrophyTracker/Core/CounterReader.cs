@@ -1,20 +1,23 @@
 using System;
 using System.Collections.Generic;
-using TrophyTracker.Core.Model;
+using System.Runtime.CompilerServices;
 
 namespace TrophyTracker.Core
 {
-    /// <summary>PLAN.md §1.1: CharacterDrop.s_pseudoCounter, read into plain values. If the game changes the
-    /// field, reads fail once (logged) and every row falls back to Unknown/Roll.</summary>
+    /// <summary>PLAN.md §1.1: CharacterDrop.s_pseudoCounter (1.0.20: Dictionary&lt;int, int&gt;, key = PityMath.CounterKey),
+    /// read into plain values. The field is touched only inside a NoInlining helper, so if the game changes it the
+    /// MissingFieldException is thrown inside the try, logged once, and every row falls back to Unknown/Roll.</summary>
     internal static class CounterReader
     {
-        public static CounterEntry? Get(string trophy)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int? Get(int key)
         {
             try
             {
-                Tuple<float, int> value;
-                if (CharacterDrop.s_pseudoCounter != null && CharacterDrop.s_pseudoCounter.TryGetValue(trophy, out value) && value != null)
-                    return new CounterEntry(value.Item1, value.Item2);
+                Dictionary<int, int> counters = Counters();
+                int value;
+                if (counters != null && counters.TryGetValue(key, out value))
+                    return value;
             }
             catch (Exception e)
             {
@@ -23,25 +26,26 @@ namespace TrophyTracker.Core
             return null;
         }
 
-        public static Dictionary<string, CounterEntry> Snapshot()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Dictionary<int, int> Snapshot()
         {
-            var result = new Dictionary<string, CounterEntry>(StringComparer.Ordinal);
             try
             {
-                if (CharacterDrop.s_pseudoCounter != null)
-                {
-                    foreach (KeyValuePair<string, Tuple<float, int>> kv in CharacterDrop.s_pseudoCounter)
-                    {
-                        if (kv.Value != null)
-                            result[kv.Key] = new CounterEntry(kv.Value.Item1, kv.Value.Item2);
-                    }
-                }
+                Dictionary<int, int> counters = Counters();
+                if (counters != null)
+                    return new Dictionary<int, int>(counters);
             }
             catch (Exception e)
             {
                 TrophyTrackerPlugin.WarnOnce("CounterReader.Snapshot", e);
             }
-            return result;
+            return new Dictionary<int, int>();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Dictionary<int, int> Counters()
+        {
+            return CharacterDrop.s_pseudoCounter;
         }
 
         public static bool NoPseudoDrops()

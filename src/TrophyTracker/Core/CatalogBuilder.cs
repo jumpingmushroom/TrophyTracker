@@ -42,6 +42,7 @@ namespace TrophyTracker.Core
                             NameToken = character.m_name,
                             Chance = drop.m_chance,
                             LevelMultiplier = drop.m_levelMultiplier,
+                            LevelMultiplierNotAmount = drop.m_levelMultiplierNotAmount,
                         });
                     }
                 }

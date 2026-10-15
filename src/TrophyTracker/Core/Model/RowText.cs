@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 
 namespace TrophyTracker.Core.Model
 {
@@ -20,10 +21,9 @@ namespace TrophyTracker.Core.Model
             switch (v.State)
             {
                 case RowState.Exact:
-                    string n = v.Count.ToString(CultureInfo.InvariantCulture);
-                    return v.Stars >= 0 ? n + " " + g.Star + v.Stars.ToString(CultureInfo.InvariantCulture) : n;
+                    return v.Count.ToString(CultureInfo.InvariantCulture) + Extras(v, g);
                 case RowState.Unknown:
-                    return "? " + Word(tr, "count_max", "max") + " " + v.Count.ToString(CultureInfo.InvariantCulture);
+                    return "? " + Word(tr, "count_max", "max") + " " + v.Count.ToString(CultureInfo.InvariantCulture) + Extras(v, g);
                 case RowState.Roll:
                     return Word(tr, "count_roll", "roll");
                 case RowState.Always:
@@ -33,6 +33,18 @@ namespace TrophyTracker.Core.Model
                 default:
                     return Word(tr, "count_none", "-");
             }
+        }
+
+        /// <summary>"  ★1:3 ★2:5": each starred tier's own countdown after the 0★ count; "" when there are none.</summary>
+        private static string Extras(RowView v, Glyphs g)
+        {
+            if (v.Extras == null || v.Extras.Count == 0)
+                return "";
+            var sb = new StringBuilder(" ");
+            foreach (TierCount e in v.Extras)
+                sb.Append(' ').Append(g.Star).Append(e.Stars.ToString(CultureInfo.InvariantCulture))
+                    .Append(':').Append(e.KillsLeft.ToString(CultureInfo.InvariantCulture));
+            return sb.ToString();
         }
 
         public static string Chance(float percent)
