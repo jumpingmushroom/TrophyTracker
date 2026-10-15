@@ -10,23 +10,24 @@ you just killed shows up on its own for a minute too.
 
 ## How it works
 
-Valheim doesn't drop low-chance trophies on a plain roll — for any trophy with a 30% or lower base
-chance, it tracks a counter per creature and guarantees the drop within a bounded number of kills.
+Requires **Valheim 1.0.20 or later** (the game's drop counter changed in 1.0.20).
+
+Valheim doesn't drop low-chance trophies on a plain roll — for any trophy with a 30% or lower
+chance, it keeps a counter and guarantees the drop within a bounded number of kills.
 TrophyTracker reads that counter instead of guessing:
 
-- **Before your first kill of a creature this session**, the game hasn't seeded its counter yet,
-  so the exact count isn't knowable. The row shows `? max N`, the worst case — the drop is guaranteed
-  by the N-th kill, and usually comes sooner.
-- **After that first kill**, the counter is seeded and the row shows an exact count, falling by
-  one with (usually) every kill of that creature and star level.
-- **Killing a different star level reseeds the counter.** A 1★ kill doesn't count against the 0★
-  progress (or vice versa) — it starts a fresh counter for that tier, and whatever progress you
-  had is lost. The row's `★` tag shows which tier it's currently tracking.
-- **Above a 30% base chance, there's no counter at all** — it's a plain roll every kill, shown as
-  `roll`. That includes most starred kills of trophies that are low-chance at 0★: each star level
-  doubles the effective chance, so a 10% trophy is already a 40% roll at 2★.
-- **The counter lives in the game process**, not in your save. It survives death and logging back
-  in, and carries across characters and worlds, but resets whenever the game is closed.
+- **The count is saved with your character.** It survives death, logging out and restarting the
+  game, so once you've killed a creature (since 1.0.20) its count is exact, falling by one with
+  every kill.
+- **Before your first kill of a creature** (at that star level), the game hasn't started its
+  counter yet, so the exact count isn't knowable. The row shows `? max N`, the worst case — the
+  drop is guaranteed by the N-th kill, and usually comes sooner.
+- **Each star level has its own countdown.** The main count is for 0★ creatures; a 1★ kill
+  doesn't touch it. Starred levels you've killed are shown after it, e.g. `7  ★1:3` — 7 more 0★
+  kills, or 3 more 1★ kills.
+- **Above a 30% chance, there's no counter at all** — it's a plain roll every kill, shown as
+  `roll`. Each star level doubles the chance, so a 10% trophy is already a 40% roll at 2★, and
+  that level never gets a countdown.
 - **In multiplayer, the counter belongs to whichever client controls the creature** — usually
   whoever was nearest when it loaded, not necessarily whoever lands the killing blow. Your own
   count may not move on a kill you made, or may move on a kill you didn't. Exact counts are
@@ -34,10 +35,13 @@ TrophyTracker reads that counter instead of guessing:
 - **Only creatures you've discovered appear** — seen a health bar, killed, or collected the
   trophy. Nothing you haven't met shows up anywhere, including the Compendium.
 
+One game quirk: switching to another character without closing the game carries the first
+character's counts over and merges them into the second one's.
+
 ## Features
 
-- Exact kills-left once seeded, worst-case bound before that, labelled with the star tier it's
-  tracking.
+- Exact kills-left once a creature has been killed, worst-case bound before that, and a separate
+  countdown for each star level you've killed.
 - A thin progress bar under exact rows that fills as the guaranteed drop gets closer.
 - Every trophy in the game is pinnable from the Compendium, not just the ones with a matching
   "first" source — Bear, Vile and friends included.
