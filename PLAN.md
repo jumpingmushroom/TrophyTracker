@@ -23,10 +23,11 @@ are the same as Earshot's and Forewarned's. No publish tooling: releases end at
 
 **Decisions agreed (2026-10-12 design review):**
 - **Name:** TrophyTracker.
-- **Counter display** (revised 2026-10-15 for 1.0.20): the main count is the 0★ countdown, exact
-  when the game has a counter for it, otherwise `? max M` with `M` the worst case. After it, every
-  starred tier that still uses pity and has a counter of its own: `7  ★1:3 ★2:5`. No star label on
-  the main count. `roll` when pity does not apply, `always` for guaranteed drops (both decided on
+- **Counter display** (revised 2026-10-15 for 1.0.20, spelled out in words 2026-10-15 fix wave
+  7): the main count is the 0★ countdown, `in {0} kills` (`next kill` at 1) when the game has a
+  counter for it, otherwise `within {0} kills` with `{0}` the worst case. After it, every starred
+  tier that still uses pity and has a counter of its own, joined with ` · `: `1★ in 3 · 2★ next`.
+  `random roll` when pity does not apply, `always drops` for guaranteed drops (both decided on
   the base chance).
 - **Star tiers have separate, saved counters** (1.0.20): killing a ★1 no longer touches the 0★
   countdown, and every counter is saved with the character.
@@ -104,8 +105,8 @@ exactly as the game does, so it truncates the same float product in the same run
   `[0, M-1]` with `M = (int)(2/p)`. Seed 0 drops on that kill; seed `s ≥ 1` stores `s` and drops `s`
   kills later. So from an unseeded state the drop lands on kill 1..M, worst case `M`, mean about
   `1/p`. For 10% that is ≤ 20. TrophyPercent's `round(1/p) - kills % round(1/p)` is unrelated to
-  the real counter; we show `? max M` instead. Because counters are saved, this only happens once
-  per character and tier (for kills made since 1.0.20).
+  the real counter; we show `within M kills` instead. Because counters are saved, this only
+  happens once per character and tier (for kills made since 1.0.20).
 - **In game (Mono)** `(int)(1f / 0.1f * 2f)` evaluates to 19, not 20: Mono evaluates the float
   expression at higher precision, and 1/0.1f is a hair under 10. The game evaluates the same
   expression in the same runtime, so the displayed worst case matches the game; the unit tests
@@ -231,10 +232,10 @@ the reading and the UI layer only binds `RowView`s.
 About 26 px tall at scale 1, with a 3 px progress bar under the text:
 
 ```
-[icon] Fenring ............  7  ★1:3   10%
+[icon] Fenring ............  in 7 kills · 1★ in 3     10%
        ▓▓▓▓▓▓▓▓░░░░░░
-[icon] Surtling ...........  ? max 40   5%
-[icon] Deer ...............  roll   50%
+[icon] Surtling ...........  within 40 kills           5%
+[icon] Deer ...............  random roll              50%
 ```
 
 - **Icon:** the trophy item's icon (`ShowIcon`).
@@ -242,25 +243,26 @@ About 26 px tall at scale 1, with a 3 px progress bar under the text:
   the most kills; ties and zero kills fall back to the first discovered source.
 - **Chance:** the base 0★ chance of that source (`ShowChance`).
 - **Font:** the vanilla HUD font asset; size follows `Scale`.
-- If the HUD font lacks ★ or ✓ (checked once with `TMP_FontAsset.HasCharacter(c, true)`), ASCII
-  stand-ins are used: `*`, `+`.
+- If the HUD font lacks ★, ✓ or · (checked once with `TMP_FontAsset.HasCharacter(c, true)`),
+  ASCII stand-ins are used: `*`, `+`, ` - `.
 
 ### 3.2 States
 
 | State | When | Count text |
 |---|---|---|
-| Exact | the 0★ key has an entry | `max(1, c)`, then the extras |
-| Unknown | no 0★ entry yet | `? max M`, `M = (int)(2 / p0)`, then the extras |
-| Roll | base chance > 0.3, or `NoPseudoDrops` is set | `roll` |
-| Always | base chance ≥ 1 | `always` |
+| Exact | the 0★ key has an entry | `in {0} kills` (`next kill` at 1), then the extras |
+| Unknown | no 0★ entry yet | `within {0} kills`, `{0} = (int)(2 / p0)`, then the extras |
+| Roll | base chance > 0.3, or `NoPseudoDrops` is set | `random roll` |
+| Always | base chance ≥ 1 | `always drops` |
 | No source | trophy has no creature drop in the catalog | `—` |
 | Collected | trophy just entered `m_trophies` | `✓ collected` for 5 s, then unpinned |
 | Dimmed | Exact while `GetNrOfPlayers() > 1` (`DimInMultiplayer`) | same text, reduced opacity |
 
 **Extras** (Exact and Unknown rows): every starred tier `s ≥ 1` whose effective chance is still
-≤ 0.3 and whose key has an entry, in star order, after two spaces: `7  ★1:3 ★2:5`,
-`? max 19  ★1:3` (ASCII: `*1:3`). Tiers without an entry are not shown; a drop without a level
-multiplier has only the 0★ tier. Extras dim with the count.
+≤ 0.3 and whose key has an entry, in star order, joined with ` · `: `in 7 kills · 1★ in 3 · 2★
+in 5`, `within 19 kills · 1★ in 3` (ASCII separator ` - `, star `*`). A tier whose own countdown
+is 1 reads `{stars}★ next` instead of `{stars}★ in {n}`. Tiers without an entry are not shown; a
+drop without a level multiplier has only the 0★ tier. Extras dim with the count.
 
 **Progress bar** (`ShowProgressBar`): Exact rows only, 0★ counter only. Fill = `1 - left / start`, where `start` is
 the highest value seen since the last reseed (a reseed is seen by the drop-roll hook, §5).

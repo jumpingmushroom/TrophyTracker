@@ -59,7 +59,7 @@ namespace TrophyTracker.UI
                 DropSource s = RowBuilder.PrimarySource(t, kills, Runtime.Discovered);
                 rt.Find("name").GetComponent<TMP_Text>().text = s != null ? Localization.instance.Localize(s.NameToken) : TrophyPanel.TrophyName(t.Id);
                 string hint = s != null
-                    ? (Runtime.Tr.Get("uncollected") ?? "Not yet collected. {0} drop. Click to pin.").Replace("{0}", RowText.Chance(s.Chance * 100f))
+                    ? (Runtime.Tr.Get("uncollected") ?? "Not yet collected. {0} drop. Click to pin.").Replace("{0}", RowText.Percent(s.Chance * 100f))
                     : Runtime.Tr.Get("uncollected_nochance") ?? "Not yet collected. Click to pin.";
                 rt.Find("description").GetComponent<TMP_Text>().text = hint;
 

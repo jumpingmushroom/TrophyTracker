@@ -7,7 +7,7 @@
   which is saved with your character: exact once you've killed that creature, a worst-case bound
   before that.
 - Each star level has its own countdown; starred levels you've killed are shown after the 0★
-  count, e.g. `7  ★1:3`.
+  count, e.g. `1★ in 3`.
 - A thin progress bar under exact rows that fills as the guaranteed drop gets closer.
 - A row for the creature you last killed, shown for a while even if its trophy isn't pinned.
 - Every trophy in the game is pinnable from the Compendium — click to toggle — not just trophies

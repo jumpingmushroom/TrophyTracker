@@ -25,8 +25,8 @@ namespace TrophyTracker.UI
         private float _rowHeight = 32f;
         private float _iconSize = 26f;
         private float _nameWidth = 170f;
-        private float _countWidth = 150f;
-        private float _chanceWidth = 54f;
+        private float _countWidth = 300f;
+        private float _chanceWidth = 100f;
         private float _gap = 6f;
 
         private static readonly Color NameColor = new Color(1f, 1f, 1f, 0.95f);
@@ -172,7 +172,7 @@ namespace TrophyTracker.UI
                 StyleText(row.Chance, font, material, style, smallSize);
             }
 
-            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true);
+            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true) && font.HasCharacter('·', true);
             _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
         }
 
@@ -202,7 +202,7 @@ namespace TrophyTracker.UI
             row.Name = UiUtil.Text(rt, "Name", BaseFontSize);
             row.Name.overflowMode = TextOverflowModes.Ellipsis;
             row.Count = UiUtil.Text(rt, "Count", BaseFontSize);
-            row.Count.alignment = TextAlignmentOptions.MidlineRight;
+            row.Count.alignment = TextAlignmentOptions.MidlineLeft;
             row.Chance = UiUtil.Text(rt, "Chance", BaseFontSize * 0.82f);
             row.Chance.alignment = TextAlignmentOptions.MidlineRight;
             row.Chance.color = MutedColor;
@@ -250,8 +250,8 @@ namespace TrophyTracker.UI
             _rowHeight = 32f * k;
             _iconSize = 26f * k;
             _nameWidth = 170f * k;
-            _countWidth = 150f * k;
-            _chanceWidth = 54f * k;
+            _countWidth = 300f * k;
+            _chanceWidth = 100f * k;
             _gap = 6f * k;
 
             Hud hud = Hud.instance;
@@ -442,7 +442,7 @@ namespace TrophyTracker.UI
                 if (v.Dim)
                     count.a = DimAlpha;
                 row.Count.color = count;
-                SetText(row.Chance, RowText.Chance(v.ChancePercent));
+                SetText(row.Chance, RowText.Chance(Runtime.Tr, v.ChancePercent));
 
                 bool bar = PluginConfig.ShowProgressBar.Value && v.BarFill >= 0f;
                 row.BarBack.gameObject.SetActive(bar);

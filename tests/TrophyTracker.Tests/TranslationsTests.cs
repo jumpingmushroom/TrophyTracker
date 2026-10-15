@@ -32,7 +32,7 @@ public class TranslationsTests
     public void EnglishFileHasEveryKeyTheCodeUses()
     {
         Translations en = Translations.Parse(File.ReadAllText(Path.Combine(Root(), "src", "TrophyTracker", "translations", "English.txt")));
-        string[] used = { "count_roll", "count_always", "count_none", "count_max", "collected", "more", "uncollected", "uncollected_nochance", "pinned" };
+        string[] used = { "count_exact", "count_next", "count_unknown", "count_roll", "count_always", "count_none", "collected", "tier_exact", "tier_next", "chance", "more", "uncollected", "uncollected_nochance", "pinned" };
         Assert.Empty(used.Where(k => en.Get(k) == null));
     }
 }

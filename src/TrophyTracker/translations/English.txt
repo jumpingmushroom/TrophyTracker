@@ -3,11 +3,16 @@
 # game's language name (German.txt, Norwegian.txt, ...), and translate the right-hand side. Keys you
 # leave out fall back to English. {0} is replaced by a number. Creature names come from the game.
 
-count_roll = roll
-count_always = always
+count_exact = in {0} kills
+count_next = next kill
+count_unknown = within {0} kills
+count_roll = random roll
+count_always = always drops
 count_none = -
-count_max = max
 collected = collected
+tier_exact = {0} in {1}
+tier_next = {0} next
+chance = {0} drop
 more = +{0} more
 uncollected = Not yet collected. {0} drop. Click to pin.
 uncollected_nochance = Not yet collected. Click to pin.

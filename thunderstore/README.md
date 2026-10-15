@@ -20,20 +20,34 @@ TrophyTracker reads that counter instead of guessing:
   game, so once you've killed a creature (since 1.0.20) its count is exact, falling by one with
   every kill.
 - **Before your first kill of a creature** (at that star level), the game hasn't started its
-  counter yet, so the exact count isn't knowable. The row shows `? max N`, the worst case — the
-  drop is guaranteed by the N-th kill, and usually comes sooner.
+  counter yet, so the exact count isn't knowable. The row shows `within N kills`, the worst
+  case — the drop is guaranteed by the N-th kill, and usually comes sooner.
 - **Each star level has its own countdown.** The main count is for 0★ creatures; a 1★ kill
-  doesn't touch it. Starred levels you've killed are shown after it, e.g. `7  ★1:3` — 7 more 0★
-  kills, or 3 more 1★ kills.
+  doesn't touch it. Starred levels you've killed are shown after it, e.g. `1★ in 3` — 3 more 1★
+  kills.
 - **Above a 30% chance, there's no counter at all** — it's a plain roll every kill, shown as
-  `roll`. Each star level doubles the chance, so a 10% trophy is already a 40% roll at 2★, and
-  that level never gets a countdown.
+  `random roll`. Each star level doubles the chance, so a 10% trophy is already a 40% roll at
+  2★, and that level never gets a countdown.
 - **In multiplayer, the counter belongs to whichever client controls the creature** — usually
   whoever was nearest when it loaded, not necessarily whoever lands the killing blow. Your own
   count may not move on a kill you made, or may move on a kill you didn't. Exact counts are
   dimmed while other players are online, as a reminder they may not be "yours".
 - **Only creatures you've discovered appear** — seen a health bar, killed, or collected the
   trophy. Nothing you haven't met shows up anywhere, including the Compendium.
+
+Reading a row:
+
+```
+Greydwarf      in 14 kills · 1★ in 3     5% drop
+Surtling       within 39 kills           5% drop
+Serpent        random roll              33% drop
+```
+
+`in 14 kills` is the exact count of kills until the guaranteed drop, for a 0★ Greydwarf.
+`1★ in 3` is the same, for 1★ Greydwarfs, which have their own countdown. `within 39 kills` is
+the worst case, before you've killed a Surtling since 1.0.20. `random roll` means above a 30%
+chance there's no countdown — every kill rolls. `5% drop` / `33% drop` is the base chance per
+kill of a 0★ creature, which doubles per star.
 
 One game quirk: switching to another character without closing the game carries the first
 character's counts over and merges them into the second one's.
