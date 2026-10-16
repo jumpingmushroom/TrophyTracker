@@ -10,8 +10,16 @@ namespace TrophyTracker.Core.Model
         public string Check;
         public string Separator;
 
+        /// <summary>Each symbol falls back on its own: a font missing only '·' keeps ★ and ✓.</summary>
+        public static Glyphs For(bool starAndCheck, bool middleDot)
+        {
+            Glyphs g = starAndCheck ? Unicode : Ascii;
+            g.Separator = middleDot ? Unicode.Separator : Ascii.Separator;
+            return g;
+        }
+
         public static readonly Glyphs Unicode = new Glyphs { Star = "★", Check = "✓", Separator = " · " };
-        public static readonly Glyphs Ascii = new Glyphs { Star = "*", Check = "+", Separator = " - " };
+        public static readonly Glyphs Ascii = new Glyphs { Star = "*", Check = "+", Separator = ", " };
     }
 
     /// <summary>PLAN.md §3.2: the text of a row's count and chance columns.</summary>
@@ -22,9 +30,9 @@ namespace TrophyTracker.Core.Model
             switch (v.State)
             {
                 case RowState.Exact:
-                    return MainCount(v, tr, "count_exact", "in {0} kills", "count_next", "next kill") + Extras(v, tr, g);
+                    return MainCount(v, tr, "count_exact", "in {0} kills") + Extras(v, tr, g);
                 case RowState.Unknown:
-                    return Word(tr, "count_unknown", "within {0} kills").Replace("{0}", v.Count.ToString(CultureInfo.InvariantCulture)) + Extras(v, tr, g);
+                    return MainCount(v, tr, "count_unknown", "within {0} kills") + Extras(v, tr, g);
                 case RowState.Roll:
                     return Word(tr, "count_roll", "random roll");
                 case RowState.Always:
@@ -36,11 +44,13 @@ namespace TrophyTracker.Core.Model
             }
         }
 
-        private static string MainCount(RowView v, Translations tr, string exactKey, string exactEnglish, string nextKey, string nextEnglish)
+        /// <summary>The 0★ count from the given template; "next kill" when one kill is left, which for an
+        /// Unknown worst case of 1 is just as certain.</summary>
+        private static string MainCount(RowView v, Translations tr, string key, string english)
         {
             if (v.Count == 1)
-                return Word(tr, nextKey, nextEnglish);
-            return Word(tr, exactKey, exactEnglish).Replace("{0}", v.Count.ToString(CultureInfo.InvariantCulture));
+                return Word(tr, "count_next", "next kill");
+            return Word(tr, key, english).Replace("{0}", v.Count.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>" · 1★ in 3 · 2★ next": each starred tier's own countdown after the 0★ count, joined with

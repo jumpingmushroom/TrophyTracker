@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -26,6 +27,16 @@ public class TranslationsTests
         Translations t = Translations.Parse("a = eins").WithFallback(Translations.Parse("a = one\nb = two"));
         Assert.Equal("eins", t.Get("a"));
         Assert.Equal("two", t.Get("b"));
+    }
+
+    [Fact]
+    public void ComparesAgainstTheReference()
+    {
+        var missing = new List<string>();
+        var retired = new List<string>();
+        Translations.Parse("count_roll = Wurf\ncount_max = max").Compare(Translations.Parse("count_roll = random roll\ncount_exact = in {0} kills"), missing, retired);
+        Assert.Equal(new[] { "count_exact" }, missing);
+        Assert.Equal(new[] { "count_max" }, retired);
     }
 
     [Fact]

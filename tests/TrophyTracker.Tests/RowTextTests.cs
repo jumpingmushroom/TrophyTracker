@@ -24,6 +24,7 @@ public class RowTextTests
         Assert.Equal("in 14 kills", RowText.Count(new RowView { State = RowState.Exact, Count = 14, Extras = new List<TierCount>() }, Tr, Glyphs.Unicode));
         Assert.Equal("next kill", RowText.Count(new RowView { State = RowState.Exact, Count = 1 }, Tr, Glyphs.Unicode));
         Assert.Equal("within 39 kills", RowText.Count(new RowView { State = RowState.Unknown, Count = 39 }, Tr, Glyphs.Unicode));
+        Assert.Equal("next kill", RowText.Count(new RowView { State = RowState.Unknown, Count = 1 }, Tr, Glyphs.Unicode));
         Assert.Equal("random roll", RowText.Count(new RowView { State = RowState.Roll }, Tr, Glyphs.Unicode));
         Assert.Equal("always drops", RowText.Count(new RowView { State = RowState.Always }, Tr, Glyphs.Unicode));
         Assert.Equal("-", RowText.Count(new RowView { State = RowState.NoSource }, Tr, Glyphs.Unicode));
@@ -34,7 +35,16 @@ public class RowTextTests
     public void AsciiGlyphsWhenTheFontLacksTheSymbols()
     {
         Assert.Equal("within 40 kills", RowText.Count(new RowView { State = RowState.Unknown, Count = 40 }, Tr, Glyphs.Ascii));
-        Assert.Equal("in 14 kills - 1* in 3", RowText.Count(new RowView { State = RowState.Exact, Count = 14, Extras = Tiers(1, 3) }, Tr, Glyphs.Ascii));
+        Assert.Equal("in 14 kills, 1* in 3", RowText.Count(new RowView { State = RowState.Exact, Count = 14, Extras = Tiers(1, 3) }, Tr, Glyphs.Ascii));
+    }
+
+    [Fact]
+    public void EachGlyphFallsBackOnItsOwn()
+    {
+        RowView v = new RowView { State = RowState.Exact, Count = 14, Extras = Tiers(1, 3) };
+        Assert.Equal("in 14 kills, 1★ in 3", RowText.Count(v, Tr, Glyphs.For(true, false)));
+        Assert.Equal("in 14 kills · 1* in 3", RowText.Count(v, Tr, Glyphs.For(false, true)));
+        Assert.Equal("✓ collected", RowText.Count(new RowView { State = RowState.Collected }, Tr, Glyphs.For(true, false)));
     }
 
     private static List<TierCount> Tiers(params int[] starsThenKills)
@@ -51,7 +61,7 @@ public class RowTextTests
         Assert.Equal("in 14 kills · 1★ in 3", RowText.Count(new RowView { State = RowState.Exact, Count = 14, Extras = Tiers(1, 3) }, Tr, Glyphs.Unicode));
         Assert.Equal("in 14 kills · 1★ in 3 · 2★ next", RowText.Count(new RowView { State = RowState.Exact, Count = 14, Extras = Tiers(1, 3, 2, 1) }, Tr, Glyphs.Unicode));
         Assert.Equal("within 39 kills · 1★ in 3", RowText.Count(new RowView { State = RowState.Unknown, Count = 39, Extras = Tiers(1, 3) }, Tr, Glyphs.Unicode));
-        Assert.Equal("within 39 kills - 1* in 3 - 2* next", RowText.Count(new RowView { State = RowState.Unknown, Count = 39, Extras = Tiers(1, 3, 2, 1) }, Tr, Glyphs.Ascii));
+        Assert.Equal("within 39 kills, 1* in 3, 2* next", RowText.Count(new RowView { State = RowState.Unknown, Count = 39, Extras = Tiers(1, 3, 2, 1) }, Tr, Glyphs.Ascii));
     }
 
     [Theory]

@@ -36,6 +36,18 @@ namespace TrophyTracker.Core.Model
             return this;
         }
 
+        /// <summary>Keys the reference (English) has that this file lacks, and keys this file has that the
+        /// reference no longer uses: a translation written for an older version.</summary>
+        public void Compare(Translations reference, List<string> missing, List<string> retired)
+        {
+            foreach (string key in reference._map.Keys)
+                if (!_map.ContainsKey(key))
+                    missing.Add(key);
+            foreach (string key in _map.Keys)
+                if (!reference._map.ContainsKey(key))
+                    retired.Add(key);
+        }
+
         public string Get(string key)
         {
             if (key == null)

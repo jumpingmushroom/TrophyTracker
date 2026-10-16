@@ -25,9 +25,14 @@ namespace TrophyTracker.UI
         private float _rowHeight = 32f;
         private float _iconSize = 26f;
         private float _nameWidth = 170f;
-        private float _countWidth = 300f;
-        private float _chanceWidth = 100f;
         private float _gap = 6f;
+
+        // The count and chance columns fit their widest text (Bind measures it), between these bounds;
+        // count text past the max ellipsizes rather than running into the chance column.
+        private float _countMin = 60f;
+        private float _countMax = 420f;
+        private float _countWidth = 60f;
+        private float _chanceWidth;
 
         private static readonly Color NameColor = new Color(1f, 1f, 1f, 0.95f);
         private static readonly Color RecentColor = new Color(0.65f, 0.85f, 1f, 1f);
@@ -172,8 +177,9 @@ namespace TrophyTracker.UI
                 StyleText(row.Chance, font, material, style, smallSize);
             }
 
-            bool unicode = font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true) && font.HasCharacter('·', true);
-            _glyphs = unicode ? Glyphs.Unicode : Glyphs.Ascii;
+            _glyphs = Glyphs.For(
+                font != null && font.HasCharacter('★', true) && font.HasCharacter('✓', true),
+                font != null && font.HasCharacter('·', true));
         }
 
         private static void StyleText(TextMeshProUGUI t, TMP_FontAsset font, Material material, FontStyles style, float size)
@@ -203,6 +209,7 @@ namespace TrophyTracker.UI
             row.Name.overflowMode = TextOverflowModes.Ellipsis;
             row.Count = UiUtil.Text(rt, "Count", BaseFontSize);
             row.Count.alignment = TextAlignmentOptions.MidlineLeft;
+            row.Count.overflowMode = TextOverflowModes.Ellipsis;
             row.Chance = UiUtil.Text(rt, "Chance", BaseFontSize * 0.82f);
             row.Chance.alignment = TextAlignmentOptions.MidlineRight;
             row.Chance.color = MutedColor;
@@ -237,7 +244,7 @@ namespace TrophyTracker.UI
             float w = _nameWidth + _gap + _countWidth;
             if (PluginConfig.ShowIcon.Value)
                 w += _iconSize + _gap;
-            if (PluginConfig.ShowChance.Value)
+            if (PluginConfig.ShowChance.Value && _chanceWidth > 0f)
                 w += _gap + _chanceWidth;
             return w;
         }
@@ -250,8 +257,8 @@ namespace TrophyTracker.UI
             _rowHeight = 32f * k;
             _iconSize = 26f * k;
             _nameWidth = 170f * k;
-            _countWidth = 300f * k;
-            _chanceWidth = 100f * k;
+            _countMin = 60f * k;
+            _countMax = 420f * k;
             _gap = 6f * k;
 
             Hud hud = Hud.instance;
@@ -269,11 +276,18 @@ namespace TrophyTracker.UI
 
             Place(_more.rectTransform, 0f, _nameWidth, _rowHeight);
 
+            LayoutColumns();
+        }
+
+        /// <summary>Places every row's children from the current column widths: on layout change, and from
+        /// Bind when the measured count or chance width moves.</summary>
+        private void LayoutColumns()
+        {
             bool icon = PluginConfig.ShowIcon.Value;
-            float x = 0f;
+            bool chance = PluginConfig.ShowChance.Value && _chanceWidth > 0f;
             foreach (Row row in _rows)
             {
-                x = 0f;
+                float x = 0f;
                 row.Icon.gameObject.SetActive(icon);
                 row.Icon.rectTransform.sizeDelta = new Vector2(_iconSize, _iconSize);
                 if (icon)
@@ -285,8 +299,8 @@ namespace TrophyTracker.UI
                 x += _nameWidth + _gap;
                 Place(row.Count.rectTransform, x, _countWidth, _rowHeight - BarHeight);
                 x += _countWidth;
-                row.Chance.gameObject.SetActive(PluginConfig.ShowChance.Value);
-                if (PluginConfig.ShowChance.Value)
+                row.Chance.gameObject.SetActive(chance);
+                if (chance)
                 {
                     Place(row.Chance.rectTransform, x + _gap, _chanceWidth, _rowHeight - BarHeight);
                 }
@@ -417,6 +431,29 @@ namespace TrophyTracker.UI
         private void Bind(RowList list)
         {
             _rowCount = list.Rows.Count;
+
+            // Texts first, so the columns can be sized to the widest before anything is placed.
+            float countWidth = 0f;
+            float chanceWidth = 0f;
+            for (int i = 0; i < _rows.Count && i < list.Rows.Count; i++)
+            {
+                Row row = _rows[i];
+                RowView v = list.Rows[i];
+                SetText(row.Count, RowText.Count(v, Runtime.Tr, _glyphs));
+                SetText(row.Chance, RowText.Chance(Runtime.Tr, v.ChancePercent));
+                countWidth = Math.Max(countWidth, row.Count.GetPreferredValues(row.Count.text).x);
+                if (row.Chance.text.Length > 0)
+                    chanceWidth = Math.Max(chanceWidth, row.Chance.GetPreferredValues(row.Chance.text).x);
+            }
+            countWidth = Mathf.Clamp(Mathf.Ceil(countWidth) + 2f, _countMin, _countMax);
+            chanceWidth = chanceWidth > 0f ? Mathf.Ceil(chanceWidth) + 2f : 0f;
+            if (countWidth != _countWidth || chanceWidth != _chanceWidth)
+            {
+                _countWidth = countWidth;
+                _chanceWidth = chanceWidth;
+                LayoutColumns();
+            }
+
             float width = RowWidth();
             for (int i = 0; i < _rows.Count; i++)
             {
@@ -437,12 +474,10 @@ namespace TrophyTracker.UI
                 }
                 SetText(row.Name, v.NameToken != null ? Localization.instance.Localize(v.NameToken) : TrophyName(v.TrophyId));
                 row.Name.color = v.Recent ? RecentColor : NameColor;
-                SetText(row.Count, RowText.Count(v, Runtime.Tr, _glyphs));
                 Color count = v.State == RowState.Exact ? ExactColor : v.State == RowState.Collected ? CollectedColor : MutedColor;
                 if (v.Dim)
                     count.a = DimAlpha;
                 row.Count.color = count;
-                SetText(row.Chance, RowText.Chance(Runtime.Tr, v.ChancePercent));
 
                 bool bar = PluginConfig.ShowProgressBar.Value && v.BarFill >= 0f;
                 row.BarBack.gameObject.SetActive(bar);

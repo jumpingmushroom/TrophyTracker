@@ -162,7 +162,20 @@ namespace TrophyTracker.Core
             Translations english = Translations.Parse(ReadResource("TrophyTracker.English.txt"));
             string language = Localization.instance.GetSelectedLanguage();
             string custom = Path.Combine(Path.Combine(Path.Combine(Paths.ConfigPath, "TrophyTracker"), "translations"), language + ".txt");
-            Tr = File.Exists(custom) ? Translations.Parse(File.ReadAllText(custom)).WithFallback(english) : english;
+            if (!File.Exists(custom))
+            {
+                Tr = english;
+                return;
+            }
+            Tr = Translations.Parse(File.ReadAllText(custom));
+            var missing = new List<string>();
+            var retired = new List<string>();
+            Tr.Compare(english, missing, retired);
+            Tr.WithFallback(english);
+            if (missing.Count > 0)
+                TrophyTrackerPlugin.Log.LogWarning(language + ".txt lacks " + string.Join(", ", missing.ToArray()) + "; those show in English. Compare it with English.txt in the TrophyTracker repository.");
+            if (retired.Count > 0)
+                TrophyTrackerPlugin.Log.LogWarning(language + ".txt has keys TrophyTracker no longer uses: " + string.Join(", ", retired.ToArray()) + ".");
         }
 
         private static string ReadResource(string name)
