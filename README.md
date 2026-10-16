@@ -2,7 +2,7 @@
 
 Shows how many more kills you need before a trophy drops, read from the game's own drop counter
 rather than estimated. Pin the trophies you're hunting from the Compendium; the trophy of whatever
-you just killed shows up on its own for a minute too.
+you just killed shows up on its own too, until your next trophy kill.
 
 ![TrophyTracker's HUD panel](docs/images/panel.jpg)
 
@@ -59,9 +59,10 @@ character's counts over and merges them into the second one's.
 - A thin progress bar under exact rows that fills as the guaranteed drop gets closer.
 - Every trophy in the game is pinnable from the Compendium, not just the ones with a matching
   "first" source — Bear, Vile and friends included.
-- A row for the creature you last killed, shown for a while even if its trophy isn't pinned.
-- The panel is movable, scalable and configurable, and hides itself with the vanilla HUD, the
-  large map, build mode and the inventory.
+- A row for the trophy of the creature you last killed, even if it isn't pinned, kept until your
+  next trophy kill (or for a set time).
+- The panel is movable, scalable and configurable — font, size, bold, outline, background — and
+  hides itself with the vanilla HUD, the large map, build mode and the inventory.
 - Dims exact counts while other players are online, since the counter may belong to someone
   else's client.
 
